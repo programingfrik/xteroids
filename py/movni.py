@@ -182,11 +182,11 @@ class Ovni:
     def trasPDib(self, punto):
         """Para trasladar con respecto al punto de localizacion del
         objeto"""
-        # TODO: creo que no es correcto hacer la divicion entre 100 de
+        # TODO: creo que no es correcto hacer la división entre 100 de
         # este lado.
-        px = self.loc[0]/100 + punto[0]
-        py = self.loc[1]/100 + punto[1]
-        return (px,py)
+        px = self.loc[0] / 100 + punto[0]
+        py = self.loc[1] / 100 + punto[1]
+        return (px, py)
 
     def acelerar(self, acel):
         """Para cambiar la aceleracion del objeto, la cantidad de posiciones que avanza,
@@ -215,7 +215,7 @@ class Ovni:
         # como todos los puntos se rotan en el mismo angulo no vale la
         # pena sacar el seno y el coseno cada vez que es una operacion
         # que toma tiempo precioso del CPU
-        anguloFl = self.ang/100.0
+        anguloFl = self.ang / 100.0
         self.sinAngul = math.sin(anguloFl)
         self.cosAngul = math.cos(anguloFl)
 
@@ -258,9 +258,9 @@ class Ovni:
         # TODO: verificar si esto se puede hacer en una sola pasada
 
         # se necesita rotar los puntos del dibujo
-        self.dibpuntos = map(self.rotSCPDib, self.puntos)
+        self.dibpuntos = list(map(self.rotSCPDib, self.puntos))
         # se necesita trasladar los puntos del dibujo
-        self.dibpuntos = map(self.trasPDib, self.dibpuntos)
+        self.dibpuntos = list(map(self.trasPDib, self.dibpuntos))
 
     def explotar(self, bala, objetos):
         """Cuando el objeto con masa explota tiene que dividirse en diferentes
@@ -375,3 +375,4 @@ class Meteoro(Omasa):
 
     def dividir(self):
         # TODO: implementar
+        pass
