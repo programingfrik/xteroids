@@ -21,7 +21,7 @@ asteroides. Tambien en algunos momentos aparecian naves enemigas que
 tambien disparaban a los asteroides. Hasta este punto el clon se va a
 mantener igual pero quiero que el juego que resulte de este proyecto
 tenga un par de cosas diferentes al juego original de asteroids que
-son las siguientes: 
+son las siguientes:
 
 1 - En el juego original de asteroides los asteroides podian solaparse
 quiero que en esta version eso no ocurra, que los asteroides choquen y
@@ -85,7 +85,7 @@ no el mismo exactamente.
 Como yo espero algun dia poder llamarme un desarrollador de juegos
 espero poder hacer algunas implementaciones diferentes, en python
 primero,  en .NET, en c usando SDL (que por sus prestaciones espero
-que sea la version mas profesional y mas jugable), y talvez en java ? 
+que sea la version mas profesional y mas jugable), y talvez en java ?
 
 Espero poder poner una seccion de creditos donde se vean en una letra
 con vectores mi nombre en todos los renglones y el nombre del juego.
@@ -111,7 +111,7 @@ parecido.
 otros archivos con documentacion !!
 
 Esta carpeta es una plantilla para todo los proyectos de aplicaciones
-o librerias que me proponga hacer por mi cuenta. 
+o librerias que me proponga hacer por mi cuenta.
 
 Dentro de la carpeta hay tres archivos que son los siguientes:
 

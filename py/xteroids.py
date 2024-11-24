@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
 
 # Este es el archivo principal de mi version del antiguo y poderoso Asteroids
 # Espero que lo disfruten
@@ -12,7 +13,7 @@ from texto import *
 def partida(screen, tamano, fondo, mapa):
     """Controla las partidas, el programa entra en esta funcion cuando
     el usuario elige jugar una partida nueva, y no sale hasta que el
-    usuario pierde todas las naves.""" 
+    usuario pierde todas las naves."""
 
     # inicializando el reloj
     reloj = pygame.time.Clock()
@@ -28,10 +29,10 @@ def partida(screen, tamano, fondo, mapa):
     estado = "nivel"
     limiteEstado = 20
     contEstado = 0
-    
+
     intblqfg = 3 # cuando se dispara una rafaga de balas la cantidad de
                  # cuadros entre una bala y la otra
-    
+
     fuegoblq = 0 # el contador de los cuadros para una rafaga de balas
 
     # la nave del jugador
@@ -48,7 +49,7 @@ def partida(screen, tamano, fondo, mapa):
                 , random.randrange(50,120)
                 , random.randrange(30)
                 , random.randrange(-10,10)))
-        
+
     # este es el bucle principal del juego y va a correr mientras el
     # usuario no presione <ESC> para salir al menu principal
     while True:
@@ -56,40 +57,40 @@ def partida(screen, tamano, fondo, mapa):
         # manejando los estados del juego
         if estado == "juego":
             # que verifique los cambios de estados
-            # print "jugando estado comun"
+            # print("jugando estado comun")
             estado = "juego"
 
             # si se acaban los meteoros hay que cambiar el nivel
-            
+
             # si algo golpea la nave hay muerte
-            
+
         elif estado == "inicio":
-            print "inicio de vida o partida"
-            
+            print("inicio de vida o partida")
+
             estado = "juego"
         elif estado == "nivel":
-            print "cambio de nivel"
-            
+            print("cambio de nivel")
+
             estado = "inicio"
         elif estado == "muerte":
-            print "se destruyo una nave"
-            
+            print("se destruyo una nave")
+
             # si le quedan vidas puede seguir jugando
             if vidas >= 0:
                 estado = "inicio"
             else:
                 estado = "gameover"
         elif estado == "gameover":
-            print "se acabaron las vidas"
+            print("se acabaron las vidas")
 
             # si el usuario tiene un record sobresaliente que le pregunte sus
             # iniciales para ponerlo en la lista de records.
-            
+
             estado = "record"
         elif estado == "record":
-            print "guardando un record"
-            
-        
+            print("guardando un record")
+
+
         # revisando la cola de eventos
         for event in pygame.event.get():
             # si me piden que cierre, cierro
@@ -98,32 +99,32 @@ def partida(screen, tamano, fondo, mapa):
 
         # revisando las teclas, que haga lo que haya que hacer
         presionados = pygame.key.get_pressed()
-        
+
         if presionados[mapa["arriba"]]:
-            # print "arriba"
+            # print("arriba")
             navejug.acelerar(-30)
 
         if presionados[mapa["abajo"]]:
-            # print "abajo"
+            # print("abajo")
             navejug.acelerar(30)
-        
+
         if presionados[mapa["izquierda"]]:
-            # print "izquierda"
+            # print("izquierda")
             navejug.rotar(-20)
-        
+
         if presionados[mapa["derecha"]]:
-            # print "derecha"
+            # print("derecha")
             navejug.rotar(20)
-        
+
         if (presionados[mapa["fuego"]] and (fuegoblq == 0)):
-            # print "fuego"
+            # print("fuego")
             navejug.disparar(espacio.objetos)
             fuegoblq = intblqfg
         elif (fuegoblq > 0):
             fuegoblq -= 1
-                
+
         if presionados[mapa["poder"]]:
-            print "poder"
+            print("poder")
             # empieza el contador de poder
             # se usa el poder
 
@@ -134,13 +135,13 @@ def partida(screen, tamano, fondo, mapa):
         espacio.golpe()
 
         # que actualice el texto de la pantalla
-        
+
         # que espere un tiempito
         reloj.tick(30)
 
         # actualizando la pantalla
         pygame.display.flip()
-       
+
 
     pass
 
@@ -158,7 +159,7 @@ def fama(fnd):
     """Cuando el usuario quiere ver los records de los juegos
     anteriores"""
     pass
-        
+
 def creditos(fnd):
     """Muestra los creditos del jueguillo :P"""
     pass
@@ -192,7 +193,7 @@ dispositivo = "teclado"
 mapa = {"arriba": pygame.K_UP,
         "abajo": pygame.K_DOWN,      # las teclas a usar
         "izquierda": pygame.K_LEFT,  # para el juego
-        "derecha": pygame.K_RIGHT, 
+        "derecha": pygame.K_RIGHT,
         "fuego": pygame.K_SPACE,
         "poder": pygame.K_TAB,
         "salir": pygame.K_ESCAPE}
@@ -222,33 +223,33 @@ for cont in range(random.randrange(3,5)):
             , random.randrange(50,120)
             , random.randrange(30)
             , random.randrange(-10,10)))
-    
+
 while True:
     # se muestra el titulo
     titulo = Texto("Xteroids", 5, (10000,5000),0,(0,0), colorA)
     fondo.agregar(titulo)
     credito = Texto("por Pablo Mercader Alcantara",2, (10000,46000),0,(0,0), colorA)
     fondo.agregar(credito)
-    
+
     # Se muestra el menu principal donde hay cuatro opciones
     # jugar, controles, salon fama, creditos y salir.
-    
+
     opciones = ["jugar", "configuracion", "fama", "creditos", "salir"]
     menu = Menu((10000,10000),opciones, colorA, colorC, fondo)
     eleccion = menu.mostrar()
 
-    # si elige jugar una partida 
+    # si elige jugar una partida
     if (eleccion == 0):
         partida(screen, size, colfondo, mapa)
 
     # si elige modificar las opciones
     elif (eleccion == 1):
         configuracion(fondo)
-    
+
     # si elige ver el salon de la fama
     elif (eleccion == 2):
         fama(fondo)
-    
+
     # si se elige ver los creditos
     elif (eleccion == 3):
         creditos(fondo)
@@ -256,10 +257,10 @@ while True:
     # la quinta opcion es salir
     elif (eleccion == 4) or (eleccion == -1):
         # que lance un mensajito bonito y salga
-        print "Gracias por jugar Xteroids!!"
+        print("Gracias por jugar Xteroids!!")
         break
 
 # fin
-    
+
 # soltando recursos
 pygame.font.quit()

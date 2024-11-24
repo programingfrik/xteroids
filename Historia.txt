@@ -5,7 +5,7 @@ Esta es la bitacora del proyecto a continuacion se muestran unas
 cuantas entradas para llevar versiones y fechas:
 
 - Version 0.0 (15/01/2009)
-  
+
   Este es el dia que escribi la primera idea de esta cuestion. Estoy
   pensando que para tener un buen sistema de deteccion de coliciones
   hay que mejorar la idea que yo tenia antes de las coordenadas. No se
@@ -19,7 +19,7 @@ cuantas entradas para llevar versiones y fechas:
 
 - 03/02/2010
 
-  Al dia hoy hay una buena parte del juego hecha, pero faltan algunas 
+  Al dia hoy hay una buena parte del juego hecha, pero faltan algunas
   partecillas, hasta ahora tengo la nave espacial hecha, hay un objeto
   generico que se llama ovni que puede representar cualquier objeto del
   juego y tengo los meteoros. Antes pensaba que hiba a poder hacer

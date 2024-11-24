@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # Este modulo es para manejar el texto del jueguillo y algunas otras
 # partes relacionadas con el texto, el menu, los caracteres, etc...
 
@@ -99,7 +101,7 @@ caracteres = {
 
 class Caracter(Ovni):
     """Esta es una clase para representar un caracter
-    
+
     Este objeto Caracter puede moverse en la pantalla igual que los
     demas objetos pero ademas tiene una particularidad que es que
     tiene una escala.
@@ -112,11 +114,9 @@ class Caracter(Ovni):
         self.tipo = "Caracter"
         self.car = car
         self.escala = escala
-        
-        pass
 
 class Texto(Ovni):
-    """Esta es una clase que usa la clase letra para 
+    """Esta es una clase que usa la clase letra para
     representar un conjunto de caracteres en los que los"""
 
     def __init__(self, texto, escala, loc, ang, vectord, color):
@@ -127,7 +127,7 @@ class Texto(Ovni):
         self.tipo = "Texto"
         self.texto = texto
         self.escala = escala
-        
+
         indp = 0
         contx = 0
         conty = 0
@@ -147,10 +147,9 @@ class Texto(Ovni):
             indp += len(caracteres[car][0])
             contx += 6 * self.escala
 
-        #print "creando Texto, estos son los puntos", self.puntos
-        #print "creando Texto, estas son las lineas", self.lineas
-        pass
-    
+        #print("creando Texto, estos son los puntos", self.puntos)
+        #print("creando Texto, estas son las lineas", self.lineas)
+
 class Menu:
     def __init__(self, loc, opciones, colorS, colorN, fondo):
         self.loc = loc
@@ -160,8 +159,6 @@ class Menu:
         self.fondo = fondo
         # cantidad de cuadros que se va a esperar para leer el teclado
         self.cuadEspTec = 2
-        
-        pass
 
     def mostrar(self, opcion = 0):
         """Mueve el fondo, mientras maneja el menu. Cuando el usuario
@@ -179,7 +176,7 @@ class Menu:
 
         # la opcion que selecciono el usuario
         seleccion = -2
-        
+
         # agregando las opciones
         tOpciones = []
         tpOpciones = []
@@ -226,7 +223,7 @@ class Menu:
                         seleccion = opcion
                     elif event.key == pygame.K_ESCAPE:
                         seleccion = -1
-            
+
             # el fondo que haga su parte
             self.fondo.golpe()
 
@@ -241,12 +238,10 @@ class Menu:
         # hay que quitar las opciones del espacio
         for opt in range(len(tpOpciones) - 1,-1,-1):
             self.fondo.quitar(tpOpciones[opt])
-            
+
         # la opcion que estaba seleccionada es la que se eligio
         return seleccion
-            
-        pass
-    
+
 
 # class Cantidad:
 
