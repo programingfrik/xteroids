@@ -222,10 +222,10 @@ class Ovni:
         # TODO: verificar si esto se puede hacer en una sola pasada
 
         # hay que rotar todos los puntos del dibujo
-        self.dibpuntos = map(self.rotSCPDib, self.puntos)
+        self.dibpuntos = list(map(self.rotSCPDib, self.puntos))
 
         # hay que trasladar los puntos del dibujo hacia loc
-        self.dibpuntos = map(self.trasPDib, self.dibpuntos)
+        self.dibpuntos = list(map(self.trasPDib, self.dibpuntos))
 
     def avanzar(self, limites):
         """Avanza la nave un paso en la direcion que indique
