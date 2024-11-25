@@ -111,7 +111,6 @@ class Caracter(Ovni):
 
         # los caracteres son Ovnis
         Ovni.__init__(self, loc, ang, vectord, color)
-        self.tipo = "Caracter"
         self.car = car
         self.escala = escala
 
@@ -124,7 +123,6 @@ class Texto(Ovni):
 
         # el texto tambien es un Ovni
         Ovni.__init__(self, loc, ang, vectord, color)
-        self.tipo = "Texto"
         self.texto = texto
         self.escala = escala
 
@@ -237,7 +235,7 @@ class Menu:
 
         # hay que quitar las opciones del espacio
         for opt in range(len(tpOpciones) - 1,-1,-1):
-            self.fondo.quitar(tpOpciones[opt])
+            self.fondo.quitar(tOpciones[opt])
 
         # la opcion que estaba seleccionada es la que se eligio
         return seleccion

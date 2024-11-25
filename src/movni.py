@@ -5,11 +5,6 @@
 # Estos son los imports necesarios
 import pygame, math, random
 
-size = 320, 240 # tamano de la pantalla
-objetos = [] # La lista con todos los objetos
-             # que se encuentran en la pantalla actualmente
-manbalas = [] # La lista de las balas
-
 class Espacio:
     """Esta clase representa el espacio, cada instancia de esta clase
     sostiene unos objetos y los actualiza o los mueve y hace que
@@ -21,43 +16,30 @@ class Espacio:
         self.tamano = tamano
         self.fondo = fondo
 
-        self.objetos = []
+        self.lovnis = []
 
     def agregar(self, ovni):
         """Pone un ovni en este espacio y se encarga de que no choque
         con ningun otro objeto en este espacio."""
 
         # TODO: el objeto choca con otro objeto?
-
         # si choca hay que moverlo a otra coordenada al azar
-        self.objetos.append(ovni)
 
-        return (len(self.objetos) - 1)
+        ovni.miespacio = self
+        self.lovnis.append(ovni)
+
+        return (len(self.lovnis) - 1)
 
     def quitar(self, ovni):
         """Para quitar el ovni que se indique del espacio."""
-
         # se quita el objeto de la lista de objetos
-        del(self.objetos[ovni])
+        self.lovnis.remove(ovni)
 
     def golpe(self):
         """Esta función debe ejecutarse en cada golpe del reloj. Esta
         función es la que hace todo el trabajo, de enviar a que se le
         haga render a los objetos y de verificar las interacciones y
         los sonidos que producen los diferentes objetos."""
-
-        # TODO: esto deberia estar en la clase Bala en el metodo
-        # avanzar o dibujar.
-
-        # las balas tienen una vida limitada
-        # hay que eliminar las balas viejas
-        indice = 0
-        while (indice  < len(self.objetos)):
-            if ((self.objetos[indice].tipo == "Bala")
-                and (self.objetos[indice].vida <= 0)):
-                del(self.objetos[indice])
-            else:
-                indice += 1
 
         # borrando la pantalla y poniendo el color de fondo
         self.pantalla.fill(self.fondo)
@@ -66,21 +48,9 @@ class Espacio:
         self.pantalla.lock()
 
         # para todos los objetos en la pantalla
-        obc = 0
-        obsc = 0
-        while obc < len(self.objetos):
-            # que se muevan en su vector
-            self.objetos[obc].avanzar(self.tamano)
-
-#             # que verificar las coliciones
-#             obsc = obc + 1
-#             while obsc < len(self.objetos):
-#                 # si soporta colisiones
-#                 if ("colision" in dir(self.objetos[obc])) and :
-
-            # que se dibujen
-            self.objetos[obc].dibujar(self.pantalla)
-            obc += 1
+        for oovni in self.lovnis.copy():
+            oovni.golpe()
+            oovni.dibujar()
 
         # aqui se acabaron las funciones de dibujo
         # que necesitan lock
@@ -93,8 +63,6 @@ class Ovni:
     Esta es la clase base de la que van a derivar los elementos del
     juego que se mueven en la pantalla."""
     def __init__(self, loc, ang, vectord, colorApl):
-        # para identificar el tipo
-        self.tipo = "Ovni"
         # inicializando variables
         self.loc = loc
         # print("creando un ovni nuevo loc:", loc, " self.loc:", self.loc)
@@ -103,21 +71,36 @@ class Ovni:
         self.color = colorApl
         # los puntos del dibujo del ovni
         self.puntos = [(10, 0),(-3, 0)]
-        self.lineas = [(0,1)]
+        self.lineas = [(0, 1)]
         # hay que llamar a la función rotar para que
         # se inicialicen los puntos del dibujo
         self.rotar(0)
         # print("creando un ovni confirmacion loc:", loc, " self.loc:", self.loc)
+        # De momento este ovni no es parte de ningún espacio
+        self.miespacio = None
 
-    def dibujar(self, srfce):
+    def dibujar(self):
         """Dibuja el Ovni en el surface srfce usando los puntos self.dibpuntos."""
         # aqui se manda a dibujar usando los puntos del dibujo
-        # print("dibujando: ", self.tipo)
+        # print("dibujando: ", type(self))
+        srfce = self.miespacio.pantalla
 
-        pygame.draw.line(srfce, (0,0,255), (self.mnX + self.loc[0] / 100, self.mnY + self.loc[1] / 100), (self.mxX + self.loc[0] / 100, self.mnY + self.loc[1] / 100))
-        pygame.draw.line(srfce, (0,0,255), (self.mnX + self.loc[0] / 100, self.mxY + self.loc[1] / 100), (self.mxX + self.loc[0] / 100, self.mxY + self.loc[1] / 100))
-        pygame.draw.line(srfce, (0,0,255), (self.mnX + self.loc[0] / 100, self.mnY + self.loc[1] / 100), (self.mnX + self.loc[0] / 100, self.mxY + self.loc[1] / 100))
-        pygame.draw.line(srfce, (0,0,255), (self.mxX + self.loc[0] / 100, self.mnY + self.loc[1] / 100), (self.mxX + self.loc[0] / 100, self.mxY + self.loc[1] / 100))
+        pygame.draw.line(
+            srfce, (0, 0, 255),
+            (self.mnX + self.loc[0] / 100, self.mnY + self.loc[1] / 100),
+            (self.mxX + self.loc[0] / 100, self.mnY + self.loc[1] / 100))
+        pygame.draw.line(
+            srfce, (0, 0, 255),
+            (self.mnX + self.loc[0] / 100, self.mxY + self.loc[1] / 100),
+            (self.mxX + self.loc[0] / 100, self.mxY + self.loc[1] / 100))
+        pygame.draw.line(
+            srfce, (0, 0, 255),
+            (self.mnX + self.loc[0] / 100, self.mnY + self.loc[1] / 100),
+            (self.mnX + self.loc[0] / 100, self.mxY + self.loc[1] / 100))
+        pygame.draw.line(
+            srfce, (0, 0, 255),
+            (self.mxX + self.loc[0] / 100, self.mnY + self.loc[1] / 100),
+            (self.mxX + self.loc[0] / 100, self.mxY + self.loc[1] / 100))
 
         for linea in self.lineas:
             pygame.draw.line(srfce, self.color, self.dibpuntos[linea[0]], self.dibpuntos[linea[1]])
@@ -227,9 +210,12 @@ class Ovni:
         # hay que trasladar los puntos del dibujo hacia loc
         self.dibpuntos = list(map(self.trasPDib, self.dibpuntos))
 
-    def avanzar(self, limites):
-        """Avanza la nave un paso en la direcion que indique
-        vectord."""
+    def golpe(self):
+        """En cada golpe de reloj se llama esta función en caso de que el
+        objeto en cuestión tenga alguna cosa que hacer puede sobrescribir esta
+        función. Esta función podría avanzar un objeto o hacer alguna verificación."""
+
+        limites = self.miespacio.tamano
 
         # los valores del area se inicializan
         self.mxX = 0
@@ -251,7 +237,7 @@ class Ovni:
         # como todos los puntos se rotan en el mismo angulo no vale la
         # pena sacar el seno y el coseno cada vez que es una operacion
         # que toma tiempo precioso del CPU
-        anguloFl = self.ang/100.0
+        anguloFl = self.ang / 100.0
         self.sinAngul = math.sin(anguloFl)
         self.cosAngul = math.cos(anguloFl)
 
@@ -266,13 +252,12 @@ class Ovni:
         """Cuando el objeto con masa explota tiene que dividirse en diferentes
         partes con tamano mas pequeno"""
         # TODO: implementar
+        pass
 
 class Omasa(Ovni):
     """Representa los objetos con masa, que reaccionan a las balas."""
     def __init__(self, loc, ang, vectord, colorApl, masa):
         Ovni.__init__(self, loc, ang, vectord, colorApl)
-        # para identificar el tipo
-        self.tipo = "Omasa"
         self.rad = masa
 
 #     def dibujar(self, srfce):
@@ -301,13 +286,12 @@ class Omasa(Ovni):
         """Determina si ocurrio una colicion entre este objeto y el
         definido por el area."""
         # TODO: implementar
+        pass
 
 class Bala(Omasa):
     """Para representar las balas que disparan las naves"""
     def __init__(self, loc, ang, vectord, colorApl, colorFin, vida, vel):
         Ovni.__init__(self, loc, ang, vectord, colorApl)
-        # para identificar el tipo
-        self.tipo = "Bala"
         self.colorf = colorFin
         self.vida = vida
         self.puntos = [(0, 0),(5, 0)]
@@ -315,51 +299,56 @@ class Bala(Omasa):
         self.rotar(0)
         self.acelerar(vel)
 
-    def dibujar(self, srfce):
+    def dibujar(self):
+        srfce = self.miespacio.pantalla
         if (self.vida > 15):
-            pygame.draw.line(srfce, self.color, self.dibpuntos[0], self.dibpuntos[1])
+            colorbala = self.color
         else:
-            pygame.draw.line(srfce, self.colorf, self.dibpuntos[0], self.dibpuntos[1])
+            colorbala = self.colorf
+        pygame.draw.line(srfce, colorbala, self.dibpuntos[0], self.dibpuntos[1])
         self.vida -= 1
+
+    def golpe(self):
+        Omasa.golpe(self)
+        if (self.vida <= 0):
+            self.miespacio.quitar(self)
+        else:
+            self.vida -= 1
 
 class Nave(Omasa):
     """Cada instancia representa una nave"""
     def __init__(self, loc, ang, vectord, colorApl):
         Omasa.__init__(self, loc, ang, vectord, colorApl, 5)
-        # para identificar el tipo
-        self.tipo = "Nave"
-        self.puntos = [(13,0), (10,0), (0, 0), (-3, -5), (-3, 5)]
-        self.lineas = [(1,3),(1,4),(2,3),(2,4)]
+        self.puntos = [(13, 0), (10, 0), (0, 0), (-3, -5), (-3, 5)]
+        self.lineas = [(1, 3), (1, 4), (2, 3), (2, 4)]
         self.rotar(0)
 
-    def disparar(self, lbalas):
+    def disparar(self):
         """Hay que poner una bala nueva en la lista de balas"""
         angulo = self.ang + random.randrange(-10,10)
-        lbalas.append(Bala((self.dibpuntos[0][0] * 100, self.dibpuntos[0][1] * 100)
-                          , angulo, self.vectord, self.color, (0, 0 , 200), 50, 360))
+        self.miespacio.agregar(
+            Bala((self.dibpuntos[0][0] * 100, self.dibpuntos[0][1] * 100)
+                 , angulo, self.vectord, self.color, (0, 0 , 200), 50, 360))
 
 class Meteoro(Omasa):
     def __init__(self, loc, ang, vectord, colorApl, masa, vel, vrot):
         Omasa.__init__(self, loc, ang, vectord, colorApl, masa)
-        # para identificar el tipo
-        # print("Creando Meteoro")
-        self.tipo = "Meteoro"
         self.vrot = vrot
         # los puntos del meteoro se generan al azar
         self.puntos = []
-        cantp = random.randrange(10,20)
+        cantp = random.randrange(10, 20)
         fact = 628.0 / cantp
         for cont in range(cantp):
             magnitudaz = self.rad + random.randrange(-10, 10)
             anguloaz = (fact * cont)  + random.randrange(-10, 10)
-            tsin = math.sin(anguloaz/100)
-            tcos = math.cos(anguloaz/100)
+            tsin = math.sin(anguloaz / 100)
+            tcos = math.cos(anguloaz / 100)
             self.puntos.append(self.rotPunt((magnitudaz, 0), anguloaz))
 
         # las lineas de los meteoros se hacen usando los puntos
         self.lineas = []
         for cont in range((len(self.puntos) - 1), -1, -1):
-            self.lineas.append((cont, cont -1))
+            self.lineas.append((cont, cont - 1))
 
 #        for c in range(len(self.puntos)):
 #             print("self.puntos[%i] : %s " % (c, str(self.puntos[c])))
@@ -369,9 +358,9 @@ class Meteoro(Omasa):
         self.rotar(0)
         self.acelerar(vel)
 
-    def avanzar(self, limites):
+    def golpe(self):
         self.ang += self.vrot
-        Omasa.avanzar(self, limites)
+        Omasa.golpe(self)
 
     def dividir(self):
         # TODO: implementar

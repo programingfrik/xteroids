@@ -118,7 +118,7 @@ def partida(screen, tamano, fondo, mapa):
 
         if (presionados[mapa["fuego"]] and (fuegoblq == 0)):
             # print("fuego")
-            navejug.disparar(espacio.objetos)
+            navejug.disparar()
             fuegoblq = intblqfg
         elif (fuegoblq > 0):
             fuegoblq -= 1
@@ -179,6 +179,7 @@ pygame.init()
 #variables a usar
 size = 640, 480 # tamano de la pantalla
 screen = pygame.display.set_mode(size)
+pygame.display.set_caption("xteroids")
 colorA = 0, 200, 0
 colorB = 200, 0, 0
 colorC = 0, 0 , 200
