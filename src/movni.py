@@ -41,10 +41,10 @@ class Espacio:
         del(self.objetos[ovni])
 
     def golpe(self):
-        """Esta funcion debe ejecutarse en cada golpe del reloj. Esta
-        funcion es la que hace todo el trabajo, de enviar a que se le
+        """Esta función debe ejecutarse en cada golpe del reloj. Esta
+        función es la que hace todo el trabajo, de enviar a que se le
         haga render a los objetos y de verificar las interacciones y
-        los sonidos que producen los diferetes obejtos."""
+        los sonidos que producen los diferentes objetos."""
 
         # TODO: esto deberia estar en la clase Bala en el metodo
         # avanzar o dibujar.
@@ -104,7 +104,7 @@ class Ovni:
         # los puntos del dibujo del ovni
         self.puntos = [(10, 0),(-3, 0)]
         self.lineas = [(0,1)]
-        # hay que llamar a la funcion rotar para que
+        # hay que llamar a la función rotar para que
         # se inicialicen los puntos del dibujo
         self.rotar(0)
         # print("creando un ovni confirmacion loc:", loc, " self.loc:", self.loc)
@@ -156,9 +156,9 @@ class Ovni:
     def rotPunt(self, punto, angulo):
         """Rota un punto cualquiera con respecto al origen, el angulo
         indicado, en radianes. Esta funcion no necesita y no modifica
-        el self.sinAngul y self.conAngul"""
-        return self.rotSCPunt(punto, math.sin(angulo/100.0)
-                         , math.cos(angulo/100.0))
+        el self.sinAngul y self.cosAngul"""
+        return self.rotSCPunt(punto, math.sin(angulo / 100.0)
+                         , math.cos(angulo / 100.0))
 
     def rotSCPDib(self, punto):
         """Rota un punto cualquiera el angulo indicado por el seno y

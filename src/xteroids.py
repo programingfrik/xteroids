@@ -235,7 +235,7 @@ while True:
     # jugar, controles, salon fama, creditos y salir.
 
     opciones = ["jugar", "configuracion", "fama", "creditos", "salir"]
-    menu = Menu((10000,10000),opciones, colorA, colorC, fondo)
+    menu = Menu((10000,10000), opciones, colorA, colorC, fondo)
     eleccion = menu.mostrar()
 
     # si elige jugar una partida
