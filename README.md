@@ -91,7 +91,7 @@ Espero poder poner una seccion de creditos donde se vean en una letra
 con vectores mi nombre en todos los renglones y el nombre del juego.
 
 Talvez en alguna de las versiones podamos hacer una version que se
-pueda juagar de mas de un jugador de forma cooperativa. ya sea en la
+pueda jugar de mas de un jugador de forma cooperativa. ya sea en la
 misma pc o en a traves de la red.
 
 para que se usa (que problema resuelve)?
