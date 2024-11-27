@@ -15,8 +15,9 @@ class Espacio:
         self.pantalla = pantalla
         self.tamano = tamano
         self.fondo = fondo
-
+        # Lista de ovnis, todos los objetos que existen en este espacio.
         self.lovnis = []
+        self.depuracion = False
 
     def agregar(self, ovni):
         """Pone un ovni en este espacio y se encarga de que no choque
@@ -35,6 +36,52 @@ class Espacio:
         # se quita el objeto de la lista de objetos
         self.lovnis.remove(ovni)
 
+    def estaentre(self, a, b, c):
+        # print(f"Esta entre, {a} {b} {c}")
+        if (b < c) and (a >= b) and (a <= c):
+            # print("Si estaentre")
+            return True
+        else:
+            # print("No estaentre")
+            return False
+
+    def sesolapadim(self, a, b, c, d):
+        # print(f"Se solapa la dimension, {a} {b} {c} {d}")
+        if (self.estaentre(a, c, d)
+            or self.estaentre(b, c, d)
+            or ((a <= c) and (b >= d))):
+            # print("Si sesolapadim")
+            return True
+        else:
+            # print("No sesolapadim")
+            return False
+
+    def sesolapan(self, a, b):
+        # print("Se solapan A y B")
+        # print(f"{a} {a.mnX} {a.mxX} {a.mnY} {a.mxY}")
+        # print(f"{b} {b.mnX} {b.mxX} {b.mnY} {b.mxY}")
+        if (self.sesolapadim(a.mnX, a.mxX, b.mnX, b.mxX)
+            and self.sesolapadim(a.mnY, a.mxY, b.mnY, b.mxY)):
+            # print("Si seesolapan\n")
+            return True
+        else:
+            # print("No sesolapan\n")
+            return False
+
+    def colisionares(self, lovni, ovni):
+        # if type(ovni) in [Texto, Caracter]:
+        #     return
+        pos = lovni.index(ovni) + 1
+        for covni in lovni:
+            if ((covni is ovni)
+                # or (type(covni) in [Texto, Caracter])
+                or (isinstance(covni, Bala)
+                    and isinstance(ovni, Bala))
+                or (not self.sesolapan(covni, ovni))):
+                continue
+            ovni.colision(covni)
+            covni.colision(ovni)
+
     def golpe(self):
         """Esta función debe ejecutarse en cada golpe del reloj. Esta
         función es la que hace todo el trabajo, de enviar a que se le
@@ -48,9 +95,11 @@ class Espacio:
         self.pantalla.lock()
 
         # para todos los objetos en la pantalla
-        for oovni in self.lovnis.copy():
-            oovni.golpe()
-            oovni.dibujar()
+        tlovnis = self.lovnis.copy()
+        for ovni in tlovnis:
+            ovni.golpe()
+            self.colisionares(tlovnis, ovni)
+            ovni.dibujar()
 
         # aqui se acabaron las funciones de dibujo
         # que necesitan lock
@@ -69,6 +118,7 @@ class Ovni:
         self.ang = ang
         self.vectord = vectord
         self.color = colorApl
+        self.colordep = (0, 0, 255)
         # los puntos del dibujo del ovni
         self.puntos = [(10, 0),(-3, 0)]
         self.lineas = [(0, 1)]
@@ -85,22 +135,23 @@ class Ovni:
         # print("dibujando: ", type(self))
         srfce = self.miespacio.pantalla
 
-        pygame.draw.line(
-            srfce, (0, 0, 255),
-            (self.mnX + self.loc[0] / 100, self.mnY + self.loc[1] / 100),
-            (self.mxX + self.loc[0] / 100, self.mnY + self.loc[1] / 100))
-        pygame.draw.line(
-            srfce, (0, 0, 255),
-            (self.mnX + self.loc[0] / 100, self.mxY + self.loc[1] / 100),
-            (self.mxX + self.loc[0] / 100, self.mxY + self.loc[1] / 100))
-        pygame.draw.line(
-            srfce, (0, 0, 255),
-            (self.mnX + self.loc[0] / 100, self.mnY + self.loc[1] / 100),
-            (self.mnX + self.loc[0] / 100, self.mxY + self.loc[1] / 100))
-        pygame.draw.line(
-            srfce, (0, 0, 255),
-            (self.mxX + self.loc[0] / 100, self.mnY + self.loc[1] / 100),
-            (self.mxX + self.loc[0] / 100, self.mxY + self.loc[1] / 100))
+        if self.miespacio.depuracion:
+            pygame.draw.line(
+                srfce, self.colordep,
+                (self.mnX, self.mnY),
+                (self.mxX, self.mnY))
+            pygame.draw.line(
+                srfce, self.colordep,
+                (self.mnX, self.mxY),
+                (self.mxX, self.mxY))
+            pygame.draw.line(
+                srfce, self.colordep,
+                (self.mnX, self.mnY),
+                (self.mnX, self.mxY))
+            pygame.draw.line(
+                srfce, self.colordep,
+                (self.mxX, self.mnY),
+                (self.mxX, self.mxY))
 
         for linea in self.lineas:
             pygame.draw.line(srfce, self.color, self.dibpuntos[linea[0]], self.dibpuntos[linea[1]])
@@ -148,14 +199,13 @@ class Ovni:
         el coseno del angulo en radianes que deben ponerse
         previamente en self.sinAngul y self.cosAngul"""
         temp = self.rotSCPunt(punto, self.sinAngul, self.cosAngul)
-        self.actArea(temp)
+        # self.actArea(temp)
         return temp
 
     def rotPDib(self, punto):
         """Para rotar un punto en el angulo self.ang. Esta funcion no
         necesita y no modifica el self.sinAngul y self.cosAngul"""
         temp = self.rotPunt(punto, self.ang)
-        self.actArea(temp)
         return temp
 
     def trasPunt(self, punto, puntotras):
@@ -169,6 +219,7 @@ class Ovni:
         # este lado.
         px = self.loc[0] / 100 + punto[0]
         py = self.loc[1] / 100 + punto[1]
+        self.actArea((px, py))
         return (px, py)
 
     def acelerar(self, acel):
@@ -183,10 +234,10 @@ class Ovni:
         angulo."""
 
         # los valores del area se inicializan
-        self.mxX = 0
-        self.mnX = 0
-        self.mxY = 0
-        self.mnY = 0
+        self.mxX = self.loc[0] / 100
+        self.mnX = self.loc[0] / 100
+        self.mxY = self.loc[1] / 100
+        self.mnY = self.loc[1] / 100
 
         # sumo el angulo
         self.ang += angulo
@@ -218,10 +269,10 @@ class Ovni:
         limites = self.miespacio.tamano
 
         # los valores del area se inicializan
-        self.mxX = 0
-        self.mnX = 0
-        self.mxY = 0
-        self.mnY = 0
+        self.mxX = self.loc[0] / 100
+        self.mnX = self.loc[0] / 100
+        self.mxY = self.loc[1] / 100
+        self.mnY = self.loc[1] / 100
 
         # traslado el punto de la localizacion
         self.loc = self.trasPunt(self.loc, self.vectord)
@@ -248,6 +299,11 @@ class Ovni:
         # se necesita trasladar los puntos del dibujo
         self.dibpuntos = list(map(self.trasPDib, self.dibpuntos))
 
+        self.colordep = (0, 0, 255)
+
+    def colision(self, ovnicol):
+        pass
+
     def explotar(self, bala, objetos):
         """Cuando el objeto con masa explota tiene que dividirse en diferentes
         partes con tamano mas pequeno"""
@@ -258,35 +314,13 @@ class Omasa(Ovni):
     """Representa los objetos con masa, que reaccionan a las balas."""
     def __init__(self, loc, ang, vectord, colorApl, masa):
         Ovni.__init__(self, loc, ang, vectord, colorApl)
-        self.rad = masa
+        self.masa = masa
 
-#     def dibujar(self, srfce):
-#         """Los objetos con masa hacen algo mas en sus rutinas de
-#         dibujo."""
-#         Ovni.dibujar(self, srfce)
-#         pygame.draw.circle(srfce, self.color, (self.loc[0]/100, self.loc[1]/100), self.rad, 1)
-
-#     def rotar(self, angulo):
-#         """Rota el objeto la cantidad de radianes indicada por
-#         angulo."""
-#         Ovni.rotar(self, angulo)
-
-#         # hay que encontrar los valores del area de coliciones
-#         self.actArea()
-
-#     def avanzar(self, limites):
-#         """Avanza la nave un paso en la direcion que indique vectord."""
-#         # el comportamiento normal
-#         Ovni.avanzar(self, limites)
-
-#         # hay que encontrar los valores del area de coliciones
-#         self.actArea()
-
-    def dectectarCol(self, objcol):
+    def colision(self, ovnicol):
         """Determina si ocurrio una colicion entre este objeto y el
         definido por el area."""
         # TODO: implementar
-        pass
+        self.colordep = (0, 255, 0)
 
 class Bala(Omasa):
     """Para representar las balas que disparan las naves"""
@@ -339,7 +373,7 @@ class Meteoro(Omasa):
         cantp = random.randrange(10, 20)
         fact = 628.0 / cantp
         for cont in range(cantp):
-            magnitudaz = self.rad + random.randrange(-10, 10)
+            magnitudaz = self.masa + random.randrange(-10, 10)
             anguloaz = (fact * cont)  + random.randrange(-10, 10)
             tsin = math.sin(anguloaz / 100)
             tcos = math.cos(anguloaz / 100)

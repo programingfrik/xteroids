@@ -19,6 +19,7 @@ def partida(screen, tamano, fondo, mapa):
     reloj = pygame.time.Clock()
 
     espacio = Espacio(screen, tamano, fondo)
+    espacio.depuracion = True
     vidas = 3
     poder = "Escudo"
     limitePoder = 30
@@ -36,19 +37,19 @@ def partida(screen, tamano, fondo, mapa):
     fuegoblq = 0 # el contador de los cuadros para una rafaga de balas
 
     # la nave del jugador
-    navejug = Nave(((size[0]/2 * 100), (size[1]/2 * 100)), 471, (0,0), colorA)
+    navejug = Nave(((tamano[0] / 2 * 100), (tamano[1] / 2 * 100)), 471, (0, 0), colorA)
     espacio.agregar(navejug)
 
     # armando los meteoros
-    for cont in range(random.randrange(3,5)):
+    for cont in range(random.randrange(3, 5)):
         espacio.agregar(Meteoro(
-                ( random.randrange(size[0] * 100), random.randrange(size[1] * 100) )
-                , 0
-                , ( random.randrange(-30,30), random.randrange(-30,30) )
-                , colorB
-                , random.randrange(50,120)
-                , random.randrange(30)
-                , random.randrange(-10,10)))
+            (random.randrange(tamano[0] * 100), random.randrange(tamano[1] * 100)),
+            0,
+            (random.randrange(-30, 30), random.randrange(-30, 30)),
+            colorB,
+            random.randrange(50, 120),
+            random.randrange(30),
+            random.randrange(-10, 10)))
 
     # este es el bucle principal del juego y va a correr mientras el
     # usuario no presione <ESC> para salir al menu principal
@@ -89,7 +90,6 @@ def partida(screen, tamano, fondo, mapa):
             estado = "record"
         elif estado == "record":
             print("guardando un record")
-
 
         # revisando la cola de eventos
         for event in pygame.event.get():
@@ -141,9 +141,6 @@ def partida(screen, tamano, fondo, mapa):
 
         # actualizando la pantalla
         pygame.display.flip()
-
-
-    pass
 
 def configuracion(fnd):
     """Cuando el usuario necesita modificar las opciones"""
@@ -198,7 +195,7 @@ mapa = {"arriba": pygame.K_UP,
         "fuego": pygame.K_SPACE,
         "poder": pygame.K_TAB,
         "salir": pygame.K_ESCAPE}
-fontusada = pygame.font.SysFont("Comic_Sans_MS.ttf",20)
+fontusada = pygame.font.SysFont("Comic_Sans_MS.ttf", 20)
 pygame.key.set_repeat(250, 50)
 
 # TODO: cargar la configuracion de los controles y los puntajes
@@ -211,19 +208,20 @@ pygame.key.set_repeat(250, 50)
 
 # Fondo inicial
 fondo = Espacio(screen, size, colfondo)
+fondo.depuracion = True
 
 # poniendo los objetos que van en el fondo.
 
 # armando los meteoros
-for cont in range(random.randrange(3,5)):
+for cont in range(random.randrange(3, 5)):
     fondo.agregar(Meteoro(
-            ( random.randrange(size[0] * 100), random.randrange(size[1] * 100) )
-            , 0
-            , ( random.randrange(-30,30), random.randrange(-30,30) )
-            , colorB
-            , random.randrange(50,120)
-            , random.randrange(30)
-            , random.randrange(-10,10)))
+        (random.randrange(size[0] * 100), random.randrange(size[1] * 100)),
+        0,
+        (random.randrange(-30, 30), random.randrange(-30,30)),
+        colorB,
+        random.randrange(50, 120),
+        random.randrange(30),
+        random.randrange(-10, 10)))
 
 while True:
     # se muestra el titulo
