@@ -213,10 +213,12 @@ class Ovni:
         objeto"""
         # TODO: creo que no es correcto hacer la división entre 100 de
         # este lado.
-        px = self.loc[X] / 100 + punto[X]
-        py = self.loc[Y] / 100 + punto[Y]
-        self.delimitar((px, py))
-        return (px, py)
+        localpunto = tuple([self.loc[D] / 100 + punto[D] for D in [X, Y]])
+        self.delimitar(localpunto)
+        return localpunto
+
+    def rotTrasSCPDib(self, punto):
+        return self.trasPDib(self.rotSCPDib(punto))
 
     def acelerar(self, acel):
         """Para cambiar la aceleracion del objeto, la cantidad de posiciones que avanza,
@@ -225,6 +227,21 @@ class Ovni:
         px = int(self.vectord[X] + (acel * (self.cosAngul)))
         py = int(self.vectord[Y] + (acel * (self.sinAngul)))
         self.vectord = px, py
+
+    def calcularDibPuntos(self):
+        # como todos los puntos se rotan en el mismo angulo no vale la
+        # pena sacar el seno y el coseno cada vez que es una operacion
+        # que toma tiempo precioso del CPU
+        anguloFl = self.ang / 100.0
+        self.sinAngul = math.sin(anguloFl)
+        self.cosAngul = math.cos(anguloFl)
+
+        # Inicializa los límites del Ovni
+        for P in [MIN, MAX]:
+            self.lim[P] = tuple([V / 100 for V in self.loc])
+
+        # Rota y traslada los puntos para poder usarlos al momento de dibujar.
+        self.dibpuntos = list(map(self.rotTrasSCPDib, self.puntos))
 
     def rotar(self, angulo):
         """Rota el objeto la cantidad de radianes indicada por
@@ -238,24 +255,7 @@ class Ovni:
         if (self.ang > 628): self.ang = self.ang - 628
         elif (self.ang < 0): self.ang = self.ang + 628
 
-        # como todos los puntos se rotan en el mismo angulo no vale la
-        # pena sacar el seno y el coseno cada vez que es una operacion
-        # que toma tiempo precioso del CPU
-        anguloFl = self.ang / 100.0
-        self.sinAngul = math.sin(anguloFl)
-        self.cosAngul = math.cos(anguloFl)
-
-        # Inicializa los límites del Ovni
-        for P in [MIN, MAX]:
-            self.lim[P] = tuple([V / 100 for V in self.loc])
-
-        # TODO: verificar si esto se puede hacer en una sola pasada
-
-        # hay que rotar todos los puntos del dibujo
-        self.dibpuntos = list(map(self.rotSCPDib, self.puntos))
-
-        # hay que trasladar los puntos del dibujo hacia loc
-        self.dibpuntos = list(map(self.trasPDib, self.dibpuntos))
+        self.calcularDibPuntos()
 
     def golpe(self):
         """En cada golpe de reloj se llama esta función en caso de que el
@@ -280,22 +280,7 @@ class Ovni:
                 llim[D] = 0
                 self.loc = tuple(llim)
 
-        # como todos los puntos se rotan en el mismo angulo no vale la
-        # pena sacar el seno y el coseno cada vez que es una operacion
-        # que toma tiempo precioso del CPU
-        anguloFl = self.ang / 100.0
-        self.sinAngul = math.sin(anguloFl)
-        self.cosAngul = math.cos(anguloFl)
-
-        # Inicializa los límites del Ovni
-        for P in [MIN, MAX]:
-            self.lim[P] = tuple([V / 100 for V in self.loc])
-
-        # TODO: verificar si esto se puede hacer en una sola pasada
-        # se necesita rotar los puntos del dibujo
-        self.dibpuntos = list(map(self.rotSCPDib, self.puntos))
-        # se necesita trasladar los puntos del dibujo
-        self.dibpuntos = list(map(self.trasPDib, self.dibpuntos))
+        self.calcularDibPuntos()
 
         # Reafirmar el color de depuración
         self.colordep = (0, 0, 255)
