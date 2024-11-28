@@ -114,6 +114,9 @@ class Caracter(Ovni):
         self.car = car
         self.escala = escala
 
+    def __repr__(self):
+        return f"<Caracter loc={self.loc} ang={self.ang} car=\"{self.car}\">"
+
 class Texto(Ovni):
     """Esta es una clase que usa la clase letra para
     representar un conjunto de caracteres en los que los"""
@@ -147,6 +150,8 @@ class Texto(Ovni):
 
         #print("creando Texto, estos son los puntos", self.puntos)
         #print("creando Texto, estas son las lineas", self.lineas)
+    def __repr__(self):
+        return f"<Texto loc={self.loc} ang={self.ang} texto=\"{self.texto}\">"
 
 class Menu:
     def __init__(self, loc, opciones, colorS, colorN, fondo):

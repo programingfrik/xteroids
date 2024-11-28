@@ -53,9 +53,11 @@ class Espacio:
             or self.estaentre(af, bi, bf)
             or ((ai <= bi) and (af >= bf)))
 
-    def sesolapan(self, a, b):
+    def sesolapan(self, ovniA, ovniB):
+        """Dice si los limites de los ovnis en cuestión se solapan."""
         global X, Y, MIN, MAX
-        """Dice si los ovnis en sus cuadros básicos se solapan."""
+        a = ovniA.lim
+        b = ovniB.lim
         return (self.sesolapadim(a[MIN][X], a[MAX][X], b[MIN][X], b[MAX][X])
             and self.sesolapadim(a[MIN][Y], a[MAX][Y], b[MIN][Y], b[MAX][Y]))
 
@@ -71,7 +73,7 @@ class Espacio:
                 or (type(covni) not in [Bala, Nave, Meteoro])
                 or (isinstance(covni, Bala)
                     and isinstance(ovni, Bala))
-                or (not self.sesolapan(covni.lim, ovni.lim))):
+                or (not self.sesolapan(covni, ovni))):
                 continue
             print(f"Colisión detectada!")
             ovni.colision(covni)
@@ -152,8 +154,8 @@ class Ovni:
             pygame.draw.line(srfce, self.color, self.dibpuntos[linea[0]], self.dibpuntos[linea[1]])
 
     def delimitar(self, punto):
-        """Evalua si el punto esta dentro del area de coliciones si no
-        lo esta amplia el area de acuerdo."""
+        """Crea el rectangulo con los valores máximos y mínimos de X y Y para
+        este Ovni."""
         global X, Y, MIN, MAX
         for D in [X, Y]:
             if punto[D] < self.lim[MIN][D]:
