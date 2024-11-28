@@ -138,8 +138,8 @@ class Texto(Ovni):
                 conty += 6 * self.escala
                 continue
             for punto in caracteres[car][0]:
-                punto = (punto[0] * self.escala, punto[1] * self.escala)
-                self.puntos += [(punto[0] + contx, punto[1] + conty)]
+                punto = (punto[X] * self.escala, punto[Y] * self.escala)
+                self.puntos += [(punto[X] + contx, punto[Y] + conty)]
             for linea in caracteres[car][1]:
                 self.lineas += [(linea[0] + indp, linea[1] + indp)]
             indp += len(caracteres[car][0])
@@ -181,7 +181,7 @@ class Menu:
         i = 0
         while i < len(self.opciones):
             temp = Texto(self.opciones[i], 3
-                    , (self.loc[0], self.loc[1] + (i * 3000))
+                    , (self.loc[X], self.loc[Y] + (i * 3000))
                     , 0, (0,0), self.colorN)
             tpOpciones.append(self.fondo.agregar(temp))
             tOpciones.append(temp)

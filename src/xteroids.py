@@ -37,13 +37,13 @@ def partida(screen, tamano, fondo, mapa):
     fuegoblq = 0 # el contador de los cuadros para una rafaga de balas
 
     # la nave del jugador
-    navejug = Nave(((tamano[0] / 2 * 100), (tamano[1] / 2 * 100)), 471, (0, 0), colorA)
+    navejug = Nave(((tamano[X] / 2 * 100), (tamano[Y] / 2 * 100)), 471, (0, 0), colorA)
     espacio.agregar(navejug)
 
     # armando los meteoros
     for cont in range(random.randrange(3, 5)):
         espacio.agregar(Meteoro(
-            (random.randrange(tamano[0] * 100), random.randrange(tamano[1] * 100)),
+            (random.randrange(tamano[X] * 100), random.randrange(tamano[Y] * 100)),
             0,
             (random.randrange(-30, 30), random.randrange(-30, 30)),
             colorB,
@@ -215,7 +215,7 @@ fondo.depuracion = True
 # armando los meteoros
 for cont in range(random.randrange(3, 5)):
     fondo.agregar(Meteoro(
-        (random.randrange(size[0] * 100), random.randrange(size[1] * 100)),
+        (random.randrange(size[X] * 100), random.randrange(size[Y] * 100)),
         0,
         (random.randrange(-30, 30), random.randrange(-30,30)),
         colorB,

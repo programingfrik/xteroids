@@ -5,6 +5,13 @@
 # Estos son los imports necesarios
 import pygame, math, random
 
+# Para que los fuentes sean más legibles aquí declaro algunas
+# constantes para usarlas en todo el programa.
+X = 0
+Y = 1
+MIN = 0
+MAX = 1
+
 class Espacio:
     """Esta clase representa el espacio, cada instancia de esta clase
     sostiene unos objetos y los actualiza o los mueve y hace que
@@ -47,9 +54,10 @@ class Espacio:
             or ((ai <= bi) and (af >= bf)))
 
     def sesolapan(self, a, b):
+        global X, Y, MIN, MAX
         """Dice si los ovnis en sus cuadros básicos se solapan."""
-        return (self.sesolapadim(a.mnX, a.mxX, b.mnX, b.mxX)
-            and self.sesolapadim(a.mnY, a.mxY, b.mnY, b.mxY))
+        return (self.sesolapadim(a[MIN][X], a[MAX][X], b[MIN][X], b[MAX][X])
+            and self.sesolapadim(a[MIN][Y], a[MAX][Y], b[MIN][Y], b[MAX][Y]))
 
     def colisionares(self, lovni, ovni):
         """Verifica las colisiones de todos los ovnis y avisa a los ovnis
@@ -63,7 +71,7 @@ class Espacio:
                 or (type(covni) not in [Bala, Nave, Meteoro])
                 or (isinstance(covni, Bala)
                     and isinstance(ovni, Bala))
-                or (not self.sesolapan(covni, ovni))):
+                or (not self.sesolapan(covni.lim, ovni.lim))):
                 continue
             print(f"Colisión detectada!")
             ovni.colision(covni)
@@ -112,62 +120,66 @@ class Ovni:
         self.lineas = [(0, 1)]
         # hay que llamar a la función rotar para que
         # se inicialicen los puntos del dibujo
+        self.lim = [(0, 0), (0, 0)]
         self.rotar(0)
         # print("creando un ovni confirmacion loc:", loc, " self.loc:", self.loc)
         # De momento este ovni no es parte de ningún espacio
         self.miespacio = None
+        # El cuadrado de los límites de este Ovni expresado en dos
+        # coordenadas un punto con los valores mínimos de coordenadas
+        # X, Y y otro con los valores máximos X, Y.
 
     def dibujar(self):
         """Dibuja el Ovni en el surface srfce usando los puntos self.dibpuntos."""
+        global X, Y, MIN, MAX
+
         # aqui se manda a dibujar usando los puntos del dibujo
         # print("dibujando: ", type(self))
+
         srfce = self.miespacio.pantalla
 
         if self.miespacio.depuracion:
-            pygame.draw.line(
-                srfce, self.colordep,
-                (self.mnX, self.mnY), (self.mxX, self.mnY))
-            pygame.draw.line(
-                srfce, self.colordep,
-                (self.mnX, self.mxY), (self.mxX, self.mxY))
-            pygame.draw.line(
-                srfce, self.colordep,
-                (self.mnX, self.mnY), (self.mnX, self.mxY))
-            pygame.draw.line(
-                srfce, self.colordep,
-                (self.mxX, self.mnY), (self.mxX, self.mxY))
+            # Si estamos en modo depuración dibuja el rectángulo de los límites.
+            temppuntos = [self.lim[MIN],
+                          (self.lim[MIN][X], self.lim[MAX][Y]),
+                          self.lim[MAX],
+                          (self.lim[MAX][X], self.lim[MIN][Y])]
+            templineas = [(0, 1), (1, 2), (2, 3), (3, 0)]
+            for linea in templineas:
+                pygame.draw.line(srfce, self.colordep, temppuntos[linea[0]], temppuntos[linea[1]])
 
         for linea in self.lineas:
             pygame.draw.line(srfce, self.color, self.dibpuntos[linea[0]], self.dibpuntos[linea[1]])
 
-    def actArea(self, punto):
+    def delimitar(self, punto):
         """Evalua si el punto esta dentro del area de coliciones si no
         lo esta amplia el area de acuerdo."""
-
-        if (punto[0] < self.mnX):
-            self.mnX = punto[0]
-        elif (punto[0] > self.mxX):
-            self.mxX = punto[0]
-
-        if (punto[1] < self.mnY):
-            self.mnY = punto[1]
-        elif (punto[1] > self.mxY):
-            self.mxY = punto[1]
+        global X, Y, MIN, MAX
+        for D in [X, Y]:
+            if punto[D] < self.lim[MIN][D]:
+                llim = list(self.lim[MIN])
+                llim[D] = punto[D]
+                self.lim[MIN] = tuple(llim)
+            elif punto[D] > self.lim[MAX][D]:
+                llim = list(self.lim[MAX])
+                llim[D] = punto[D]
+                self.lim[MAX] = tuple(llim)
 
     def rotSCPunt(self, punto, sinAngul, cosAngul):
         """Rota un punto en el angulo cuyo seno y coseno se incluyen
         como parametros y retorna el punto resultante."""
+        global X, Y
 
-        #print("seno %f y coseno %f y el punto (%i,%i)"%(sinAngul, cosAngul, punto[0], punto[1]))
+        #print("seno %f y coseno %f y el punto (%i,%i)"%(sinAngul, cosAngul, punto[X], punto[Y]))
 
         # como el seno y el coseno son el mismo para todos los puntos
         # porque se trata del mismo angulo este se saca fuera de esta
         # funcion que corre para todos los puntos.
-        px = punto[0] * cosAngul
-        px -= punto[1] * sinAngul
+        px = punto[X] * cosAngul
+        px -= punto[Y] * sinAngul
         px = int(px)
-        py = punto[0] * sinAngul
-        py += punto[1] * cosAngul
+        py = punto[X] * sinAngul
+        py += punto[Y] * cosAngul
         py = int(py)
         return px, py
 
@@ -183,7 +195,6 @@ class Ovni:
         el coseno del angulo en radianes que deben ponerse
         previamente en self.sinAngul y self.cosAngul"""
         temp = self.rotSCPunt(punto, self.sinAngul, self.cosAngul)
-        # self.actArea(temp)
         return temp
 
     def rotPDib(self, punto):
@@ -194,34 +205,31 @@ class Ovni:
 
     def trasPunt(self, punto, puntotras):
         """Para trasladar el \"punto\" sumandole \"puntotras\""""
-        return punto[0] + puntotras[0], punto[1] + puntotras[1]
+        global X, Y
+        return punto[X] + puntotras[X], punto[Y] + puntotras[Y]
 
     def trasPDib(self, punto):
         """Para trasladar con respecto al punto de localizacion del
         objeto"""
         # TODO: creo que no es correcto hacer la división entre 100 de
         # este lado.
-        px = self.loc[0] / 100 + punto[0]
-        py = self.loc[1] / 100 + punto[1]
-        self.actArea((px, py))
+        px = self.loc[X] / 100 + punto[X]
+        py = self.loc[Y] / 100 + punto[Y]
+        self.delimitar((px, py))
         return (px, py)
 
     def acelerar(self, acel):
         """Para cambiar la aceleracion del objeto, la cantidad de posiciones que avanza,
         en el angulo del ovni."""
-        px = int(self.vectord[0] + (acel * (self.cosAngul)))
-        py = int(self.vectord[1] + (acel * (self.sinAngul)))
+        global X, Y
+        px = int(self.vectord[X] + (acel * (self.cosAngul)))
+        py = int(self.vectord[Y] + (acel * (self.sinAngul)))
         self.vectord = px, py
 
     def rotar(self, angulo):
         """Rota el objeto la cantidad de radianes indicada por
         angulo."""
-
-        # los valores del area se inicializan
-        self.mxX = self.loc[0] / 100
-        self.mnX = self.loc[0] / 100
-        self.mxY = self.loc[1] / 100
-        self.mnY = self.loc[1] / 100
+        global X, Y, MIN, MAX
 
         # sumo el angulo
         self.ang += angulo
@@ -237,6 +245,10 @@ class Ovni:
         self.sinAngul = math.sin(anguloFl)
         self.cosAngul = math.cos(anguloFl)
 
+        # Inicializa los límites del Ovni
+        for P in [MIN, MAX]:
+            self.lim[P] = tuple([V / 100 for V in self.loc])
+
         # TODO: verificar si esto se puede hacer en una sola pasada
 
         # hay que rotar todos los puntos del dibujo
@@ -249,25 +261,24 @@ class Ovni:
         """En cada golpe de reloj se llama esta función en caso de que el
         objeto en cuestión tenga alguna cosa que hacer puede sobrescribir esta
         función. Esta función podría avanzar un objeto o hacer alguna verificación."""
+        global X, Y, MIN, MAX
 
         limites = self.miespacio.tamano
-
-        # los valores del area se inicializan
-        self.mxX = self.loc[0] / 100
-        self.mnX = self.loc[0] / 100
-        self.mxY = self.loc[1] / 100
-        self.mnY = self.loc[1] / 100
 
         # traslado el punto de la localizacion
         self.loc = self.trasPunt(self.loc, self.vectord)
 
-        # si la localizacion esta fuera de los limites
-        # hay que introducirla por el otro extremo
-        if (self.loc[0] < 0): self.loc = (limites[0] * 100), self.loc[1]
-        elif (self.loc[0] > (limites[0] * 100)): self.loc = 0, self.loc[1]
-
-        if (self.loc[1] < 0): self.loc = self.loc[0], limites[1] * 100
-        elif (self.loc[1] > (limites[1] * 100)): self.loc = self.loc[0], 0
+        # Si la localizacion esta fuera de los limites
+        # introducelo por el otro extremo
+        for D in [X, Y]:
+            if self.loc[D] < 0:
+                llim = list(self.loc)
+                llim[D] = limites[D]
+                self.loc = tuple(llim)
+            elif self.loc[D] > (limites[D] * 100):
+                llim = list(self.loc)
+                llim[D] = 0
+                self.loc = tuple(llim)
 
         # como todos los puntos se rotan en el mismo angulo no vale la
         # pena sacar el seno y el coseno cada vez que es una operacion
@@ -276,8 +287,11 @@ class Ovni:
         self.sinAngul = math.sin(anguloFl)
         self.cosAngul = math.cos(anguloFl)
 
-        # TODO: verificar si esto se puede hacer en una sola pasada
+        # Inicializa los límites del Ovni
+        for P in [MIN, MAX]:
+            self.lim[P] = tuple([V / 100 for V in self.loc])
 
+        # TODO: verificar si esto se puede hacer en una sola pasada
         # se necesita rotar los puntos del dibujo
         self.dibpuntos = list(map(self.rotSCPDib, self.puntos))
         # se necesita trasladar los puntos del dibujo
@@ -297,7 +311,7 @@ class Ovni:
 
     def __repr__(self):
         """La representación de este ovni."""
-        return f"<Ovni loc={self.loc} ang={self.ang}>"
+        return f"<Ovni loc={self.loc} ang={self.ang} lim={self.lim}>"
 
 class Omasa(Ovni):
     """Representa los objetos con masa, que reaccionan a las balas."""
@@ -314,7 +328,7 @@ class Omasa(Ovni):
 
     def __repr__(self):
         """La representación de este ovni con masa."""
-        return f"<Omasa loc={self.loc} ang={self.ang}>"
+        return f"<Omasa loc={self.loc} ang={self.ang} lim={self.lim}>"
 
 class Bala(Omasa):
     """Para representar las balas que disparan las naves"""
@@ -345,7 +359,7 @@ class Bala(Omasa):
 
     def __repr__(self):
         """La representación de esta Bala."""
-        return f"<Bala loc={self.loc} ang={self.ang}>"
+        return f"<Bala loc={self.loc} ang={self.ang} lim={self.lim}>"
 
 
 class Nave(Omasa):
@@ -360,12 +374,12 @@ class Nave(Omasa):
         """Hay que poner una bala nueva en la lista de balas"""
         angulo = self.ang + random.randrange(-10,10)
         self.miespacio.agregar(
-            Bala((self.dibpuntos[0][0] * 100, self.dibpuntos[0][1] * 100)
+            Bala((self.dibpuntos[0][X] * 100, self.dibpuntos[0][Y] * 100)
                  , angulo, self.vectord, self.color, (0, 0 , 200), 50, 360))
 
     def __repr__(self):
         """La representación de esta Nave."""
-        return f"<Nave loc={self.loc} ang={self.ang}>"
+        return f"<Nave loc={self.loc} ang={self.ang} lim={self.lim}>"
 
 
 class Meteoro(Omasa):
@@ -406,4 +420,4 @@ class Meteoro(Omasa):
 
     def __repr__(self):
         """La representación de este Meteoro."""
-        return f"<Meteoro loc={self.loc} ang={self.ang}>"
+        return f"<Meteoro loc={self.loc} ang={self.ang} lim={self.lim}>"
