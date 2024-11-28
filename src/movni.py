@@ -36,49 +36,36 @@ class Espacio:
         # se quita el objeto de la lista de objetos
         self.lovnis.remove(ovni)
 
-    def estaentre(self, a, b, c):
-        # print(f"Esta entre, {a} {b} {c}")
-        if (b < c) and (a >= b) and (a <= c):
-            # print("Si estaentre")
-            return True
-        else:
-            # print("No estaentre")
-            return False
+    def estaentre(self, v, ri, rf):
+        """Dice si v está entre ri y rf, ri debe ser menor que rf."""
+        return (ri < rf) and (v >= ri) and (v <= rf)
 
-    def sesolapadim(self, a, b, c, d):
-        # print(f"Se solapa la dimension, {a} {b} {c} {d}")
-        if (self.estaentre(a, c, d)
-            or self.estaentre(b, c, d)
-            or ((a <= c) and (b >= d))):
-            # print("Si sesolapadim")
-            return True
-        else:
-            # print("No sesolapadim")
-            return False
+    def sesolapadim(self, ai, af, bi, bf):
+        """Dice si los rangos de ai a af y de bi a bf se tocan en una dimensión."""
+        return (self.estaentre(ai, bi, bf)
+            or self.estaentre(af, bi, bf)
+            or ((ai <= bi) and (af >= bf)))
 
     def sesolapan(self, a, b):
-        # print("Se solapan A y B")
-        # print(f"{a} {a.mnX} {a.mxX} {a.mnY} {a.mxY}")
-        # print(f"{b} {b.mnX} {b.mxX} {b.mnY} {b.mxY}")
-        if (self.sesolapadim(a.mnX, a.mxX, b.mnX, b.mxX)
-            and self.sesolapadim(a.mnY, a.mxY, b.mnY, b.mxY)):
-            # print("Si seesolapan\n")
-            return True
-        else:
-            # print("No sesolapan\n")
-            return False
+        """Dice si los ovnis en sus cuadros básicos se solapan."""
+        return (self.sesolapadim(a.mnX, a.mxX, b.mnX, b.mxX)
+            and self.sesolapadim(a.mnY, a.mxY, b.mnY, b.mxY))
 
     def colisionares(self, lovni, ovni):
-        # if type(ovni) in [Texto, Caracter]:
-        #     return
+        """Verifica las colisiones de todos los ovnis y avisa a los ovnis
+        involucrados en esas colisiones."""
+        if type(ovni) not in [Bala, Nave, Meteoro]:
+            return
         pos = lovni.index(ovni) + 1
-        for covni in lovni:
+        print(f"verificando a partir de la posición {pos}")
+        for covni in lovni[pos:]:
             if ((covni is ovni)
-                # or (type(covni) in [Texto, Caracter])
+                or (type(covni) not in [Bala, Nave, Meteoro])
                 or (isinstance(covni, Bala)
                     and isinstance(ovni, Bala))
                 or (not self.sesolapan(covni, ovni))):
                 continue
+            print(f"Colisión detectada!")
             ovni.colision(covni)
             covni.colision(ovni)
 
@@ -96,6 +83,7 @@ class Espacio:
 
         # para todos los objetos en la pantalla
         tlovnis = self.lovnis.copy()
+        print(f"Los ovnis que vamos a verificar {tlovnis}")
         for ovni in tlovnis:
             ovni.golpe()
             self.colisionares(tlovnis, ovni)
@@ -138,20 +126,16 @@ class Ovni:
         if self.miespacio.depuracion:
             pygame.draw.line(
                 srfce, self.colordep,
-                (self.mnX, self.mnY),
-                (self.mxX, self.mnY))
+                (self.mnX, self.mnY), (self.mxX, self.mnY))
             pygame.draw.line(
                 srfce, self.colordep,
-                (self.mnX, self.mxY),
-                (self.mxX, self.mxY))
+                (self.mnX, self.mxY), (self.mxX, self.mxY))
             pygame.draw.line(
                 srfce, self.colordep,
-                (self.mnX, self.mnY),
-                (self.mnX, self.mxY))
+                (self.mnX, self.mnY), (self.mnX, self.mxY))
             pygame.draw.line(
                 srfce, self.colordep,
-                (self.mxX, self.mnY),
-                (self.mxX, self.mxY))
+                (self.mxX, self.mnY), (self.mxX, self.mxY))
 
         for linea in self.lineas:
             pygame.draw.line(srfce, self.color, self.dibpuntos[linea[0]], self.dibpuntos[linea[1]])
@@ -299,6 +283,7 @@ class Ovni:
         # se necesita trasladar los puntos del dibujo
         self.dibpuntos = list(map(self.trasPDib, self.dibpuntos))
 
+        # Reafirmar el color de depuración
         self.colordep = (0, 0, 255)
 
     def colision(self, ovnicol):
@@ -310,6 +295,10 @@ class Ovni:
         # TODO: implementar
         pass
 
+    def __repr__(self):
+        """La representación de este ovni."""
+        return f"<Ovni loc={self.loc} ang={self.ang}>"
+
 class Omasa(Ovni):
     """Representa los objetos con masa, que reaccionan a las balas."""
     def __init__(self, loc, ang, vectord, colorApl, masa):
@@ -317,10 +306,15 @@ class Omasa(Ovni):
         self.masa = masa
 
     def colision(self, ovnicol):
-        """Determina si ocurrio una colicion entre este objeto y el
-        definido por el area."""
-        # TODO: implementar
+        """Cuando se produce una colisión el espacio llama esta función para
+        que el ovni en cuestión tome la acción que corresponda. ovnicol es el
+        objeto con el que se produjo la colisión."""
+        # Si hubo una colisión cambiale el color de depuración.
         self.colordep = (0, 255, 0)
+
+    def __repr__(self):
+        """La representación de este ovni con masa."""
+        return f"<Omasa loc={self.loc} ang={self.ang}>"
 
 class Bala(Omasa):
     """Para representar las balas que disparan las naves"""
@@ -349,6 +343,11 @@ class Bala(Omasa):
         else:
             self.vida -= 1
 
+    def __repr__(self):
+        """La representación de esta Bala."""
+        return f"<Bala loc={self.loc} ang={self.ang}>"
+
+
 class Nave(Omasa):
     """Cada instancia representa una nave"""
     def __init__(self, loc, ang, vectord, colorApl):
@@ -363,6 +362,11 @@ class Nave(Omasa):
         self.miespacio.agregar(
             Bala((self.dibpuntos[0][0] * 100, self.dibpuntos[0][1] * 100)
                  , angulo, self.vectord, self.color, (0, 0 , 200), 50, 360))
+
+    def __repr__(self):
+        """La representación de esta Nave."""
+        return f"<Nave loc={self.loc} ang={self.ang}>"
+
 
 class Meteoro(Omasa):
     def __init__(self, loc, ang, vectord, colorApl, masa, vel, vrot):
@@ -399,3 +403,7 @@ class Meteoro(Omasa):
     def dividir(self):
         # TODO: implementar
         pass
+
+    def __repr__(self):
+        """La representación de este Meteoro."""
+        return f"<Meteoro loc={self.loc} ang={self.ang}>"
