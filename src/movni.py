@@ -153,6 +153,10 @@ class Ovni:
         for linea in self.lineas:
             pygame.draw.line(srfce, self.color, self.dibpuntos[linea[0]], self.dibpuntos[linea[1]])
 
+        # Vuelve a inicializar el color de depuración para la próxima vuelta.
+        self.colordep = (0, 0, 255)
+
+
     def delimitar(self, punto):
         """Crea el rectangulo con los valores máximos y mínimos de X y Y para
         este Ovni."""
@@ -284,9 +288,6 @@ class Ovni:
 
         self.calcularDibPuntos()
 
-        # Reafirmar el color de depuración
-        self.colordep = (0, 0, 255)
-
     def colision(self, ovnicol):
         pass
 
@@ -311,6 +312,7 @@ class Omasa(Ovni):
         que el ovni en cuestión tome la acción que corresponda. ovnicol es el
         objeto con el que se produjo la colisión."""
         # Si hubo una colisión cambiale el color de depuración.
+        print(f"{self} procesando colision")
         self.colordep = (0, 255, 0)
 
     def __repr__(self):
