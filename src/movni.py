@@ -67,7 +67,7 @@ class Espacio:
         if type(ovni) not in [Bala, Nave, Meteoro]:
             return
         pos = lovni.index(ovni) + 1
-        print(f"verificando a partir de la posición {pos}")
+        # print(f"verificando a partir de la posición {pos}")
         for covni in lovni[pos:]:
             if ((covni is ovni)
                 or (type(covni) not in [Bala, Nave, Meteoro])
@@ -75,7 +75,7 @@ class Espacio:
                     and isinstance(ovni, Bala))
                 or (not self.sesolapan(covni, ovni))):
                 continue
-            print(f"Colisión detectada!")
+            # print(f"Colisión detectada!")
             ovni.colision(covni)
             covni.colision(ovni)
 
@@ -93,7 +93,7 @@ class Espacio:
 
         # para todos los objetos en la pantalla
         tlovnis = self.lovnis.copy()
-        print(f"Los ovnis que vamos a verificar {tlovnis}")
+        # print(f"Los ovnis que vamos a verificar {tlovnis}")
         for ovni in tlovnis:
             ovni.golpe()
             self.colisionares(tlovnis, ovni)
@@ -176,7 +176,7 @@ class Ovni:
         como parametros y retorna el punto resultante."""
         global X, Y
 
-        #print("seno %f y coseno %f y el punto (%i,%i)"%(sinAngul, cosAngul, punto[X], punto[Y]))
+        # print("seno %f y coseno %f y el punto (%i,%i)"%(sinAngul, cosAngul, punto[X], punto[Y]))
 
         # como el seno y el coseno son el mismo para todos los puntos
         # porque se trata del mismo angulo este se saca fuera de esta
@@ -279,7 +279,7 @@ class Ovni:
         for D in [X, Y]:
             if self.loc[D] < 0:
                 llim = list(self.loc)
-                llim[D] = limites[D]
+                llim[D] = limites[D] * 100
                 self.loc = tuple(llim)
             elif self.loc[D] > (limites[D] * 100):
                 llim = list(self.loc)
@@ -312,7 +312,7 @@ class Omasa(Ovni):
         que el ovni en cuestión tome la acción que corresponda. ovnicol es el
         objeto con el que se produjo la colisión."""
         # Si hubo una colisión cambiale el color de depuración.
-        print(f"{self} procesando colision")
+        # print(f"{self} procesando colision")
         self.colordep = (0, 255, 0)
 
     def __repr__(self):
