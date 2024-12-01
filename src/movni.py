@@ -43,9 +43,17 @@ class Espacio:
         # se quita el objeto de la lista de objetos
         self.lovnis.remove(ovni)
 
-    def estaentre(self, v, ri, rf):
-        """Dice si v está entre ri y rf, ri debe ser menor que rf."""
-        return (ri < rf) and (v >= ri) and (v <= rf)
+    def estaentre(self, v, ra, rb):
+        """Dice si v está entre el rango formado por ra y rb, no importa el orden."""
+        return (((ra < rb) and (v >= ra) and (v <= rb))
+                or ((rb < ra) and (v >= rb) and (v <= ra)))
+
+    def puntoestaentre(self, ps, pi, pf):
+        """Asumiendo que los tres puntos ps, pi y pf estan sobre la misma
+        recta verifica si ps está entre pi y pf."""
+        global X, Y
+        return (self.estaentre(ps[X], pi[X], pf[X])
+                and self.estaentre(ps[Y], pi[Y], pf[Y]))
 
     def sesolapadim(self, ai, af, bi, bf):
         """Dice si los rangos de ai a af y de bi a bf se tocan en una dimensión."""
@@ -61,23 +69,107 @@ class Espacio:
         return (self.sesolapadim(a[MIN][X], a[MAX][X], b[MIN][X], b[MAX][X])
             and self.sesolapadim(a[MIN][Y], a[MAX][Y], b[MIN][Y], b[MAX][Y]))
 
+    def pendiente(self, a, b):
+        """Calcula la pendiente de la recta por la que pasan los puntos a y
+        b."""
+        global X, Y
+        if (b[X] - a[X]) == 0:
+            return None
+        return (b[Y] - a[Y]) / (b[X] - a[X])
+
+    def secruzan(self, a1, a2, b1, b2):
+        """Verifica si la linea A compuesta por los puntos a1 y a2 se cruza
+        con la linea B compuesta por los puntos b1 y b2. Si se cruzan
+        aunque sea en un punto lejano retorna el punto de intersección
+        sino retorna None, o sea que son paralelas."""
+        global X, Y
+        ma = self.pendiente(a1, a2)
+        mb = self.pendiente(b1, b2)
+        if (ma == mb):
+            return None
+        elif (not ma):
+            crucex = a1[X]
+            crucey = mb * (crucex - b1[X]) + b1[Y]
+        elif (not mb):
+            crucex = b1[X]
+            crucey = ma * (crucex - a1[X]) + a1[Y]
+        else:
+            crucex = ((-mb * b1[X]) + b1[Y] - a1[Y] + (ma * a1[X])) / (ma - mb)
+            crucey = ma * (crucex - a1[X]) + a1[Y]
+        return (crucex, crucey)
+
+    def distancia(self, a, b):
+        """Calcula la distancia entre dos puntos a y b"""
+        global X, Y
+        return math.sqrt((b[X] - a[X]) ** 2 + (b[Y] - a[Y]) ** 2)
+
+    def baleado(self, ovni, bala):
+        """Verifica si bala toca realmente alguna linea de ovni."""
+        puntob = bala.punta()
+        for linea in ovni.lineas:
+            p1 = ovni.dibpuntos[linea[0]]
+            p2 = ovni.dibpuntos[linea[1]]
+            cruce = self.secruzan(p1, p2, puntob, ovni.loc)
+            if ((not cruce) or (not self.puntoestaentre(cruce, p1, p2))):
+                continue
+            if (self.distancia(cruce, ovni.loc)
+                  > self.distancia(puntob, ovni.loc)):
+                return cruce
+        return None
+
+    def colisionado(self, ovniA, ovniB):
+        """Verifica si los ovnis realmente se tocan entre ellos."""
+        if self.distancia(ovniA.loc, ovniB.loc) > (ovniA.radiomayor + ovniB.radiomayor):
+            return None
+        for punto in ovniA.dibpuntos:
+            if (self.distancia(punto, ovniB.loc) < ovniB.radiomayor):
+                choque = self.baleado(ovniB, punto)
+                if choque:
+                    return choque
+        return None
+
     def colisionares(self, lovni, ovni):
         """Verifica las colisiones de todos los ovnis y avisa a los ovnis
         involucrados en esas colisiones."""
+
+        # Si no es una bala, nave o meteoro no se necesita verificar
+        # las colisiones
         if type(ovni) not in [Bala, Nave, Meteoro]:
             return
-        pos = lovni.index(ovni) + 1
-        # print(f"verificando a partir de la posición {pos}")
-        for covni in lovni[pos:]:
+
+        # Las colisiones se verifican de 2 en 2, después de que un
+        # ovni es verificado contra todos los elementos de la lista,
+        # esos elementos de la lista no tienen que verificar contra el
+        # primero. Por eso este bucle comienza en pos + 1, esto reduce
+        # a la mitad las verificaciones.
+        pos = lovni.index(ovni)
+        for covni in lovni[pos + 1:]:
             if ((covni is ovni)
                 or (type(covni) not in [Bala, Nave, Meteoro])
                 or (isinstance(covni, Bala)
                     and isinstance(ovni, Bala))
                 or (not self.sesolapan(covni, ovni))):
                 continue
+
+            # Está tocandose el cuadro límite, verifica si realmente
+            # toca la figura
+            if ((type(ovni) in [Nave, Meteoro])
+                 and isinstance(covni, Bala)):
+                puntochoque = self.baleado(ovni, covni)
+            elif ((type(covni) in [Nave, Meteoro])
+                  and isinstance(ovni, Bala)):
+                puntochoque = self.baleado(covni, ovni)
+            elif ((type(ovni) in [Nave, Meteoro])
+                  and (type(covni) in [Nave, Meteoro])):
+                puntochoque = self.colisionado(ovni, covni)
+
+            if not puntochoque:
+                continue
+
+            # Si se tocan
             # print(f"Colisión detectada!")
-            ovni.colision(covni)
-            covni.colision(ovni)
+            ovni.colision(covni, puntochoque)
+            covni.colision(ovni, puntochoque)
 
     def golpe(self):
         """Esta función debe ejecutarse en cada golpe del reloj. Esta
@@ -288,7 +380,7 @@ class Ovni:
 
         self.calcularDibPuntos()
 
-    def colision(self, ovnicol):
+    def colision(self, ovnicol, puntochoque):
         pass
 
     def explotar(self, bala, objetos):
@@ -306,8 +398,10 @@ class Omasa(Ovni):
     def __init__(self, loc, ang, vectord, colorApl, masa):
         Ovni.__init__(self, loc, ang, vectord, colorApl)
         self.masa = masa
+        self.radiomayor = 2
+        self.radiomenor = 1
 
-    def colision(self, ovnicol):
+    def colision(self, ovnicol, puntochoque):
         """Cuando se produce una colisión el espacio llama esta función para
         que el ovni en cuestión tome la acción que corresponda. ovnicol es el
         objeto con el que se produjo la colisión."""
@@ -350,6 +444,10 @@ class Bala(Omasa):
         """La representación de esta Bala."""
         return f"<Bala loc={self.loc} ang={self.ang} lim={self.lim}>"
 
+    def punta(self):
+        """Retorna el punto que va a llegar primero a cualquier colision."""
+        return self.dibpuntos[1]
+
 
 class Nave(Omasa):
     """Cada instancia representa una nave"""
@@ -357,6 +455,8 @@ class Nave(Omasa):
         Omasa.__init__(self, loc, ang, vectord, colorApl, 5)
         self.puntos = [(13, 0), (10, 0), (0, 0), (-3, -5), (-3, 5)]
         self.lineas = [(1, 3), (1, 4), (2, 3), (2, 4)]
+        self.radiomayor = 13
+        self.radiomenor = 5
         self.rotar(0)
 
     def disparar(self):
@@ -379,8 +479,14 @@ class Meteoro(Omasa):
         self.puntos = []
         cantp = random.randrange(10, 20)
         fact = 628.0 / cantp
+        self.radiomenor = 10
+        self.radiomayor = -10
         for cont in range(cantp):
             magnitudaz = self.masa + random.randrange(-10, 10)
+            if (magnitudaz > self.radiomayor):
+                self.radiomayor = magnitudaz
+            elif (magnitudaz < self.radiomenor):
+                self.radiomenor = magnitudaz
             anguloaz = (fact * cont)  + random.randrange(-10, 10)
             tsin = math.sin(anguloaz / 100)
             tcos = math.cos(anguloaz / 100)
@@ -410,3 +516,11 @@ class Meteoro(Omasa):
     def __repr__(self):
         """La representación de este Meteoro."""
         return f"<Meteoro loc={self.loc} ang={self.ang} lim={self.lim}>"
+
+    def dibujar(self):
+        """Manda a dibujar las cosas específicas de un Meteoro."""
+        Omasa.dibujar(self)
+        srfce = self.miespacio.pantalla
+        if self.miespacio.depuracion:
+            pygame.draw.circle(srfce, self.colordep, self.loc, self.radiomenor)
+            pygame.draw.circle(srfce, self.colordep, self.loc, self.radiomayor)

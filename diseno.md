@@ -19,7 +19,8 @@ Casos de uso
    tiene un escudo a su disposición listo para usarlo.
  - La nave del jugador puede rotar, si el usuario presiona las teclas
    cursoras izquierda y derecha y puede avanzar o retroceder en el
-   ángulo en que se encuentre presionando arriba o abajo.
+   ángulo en que se encuentre presionando arriba o abajo en las teclas
+   cursoras.
  - El jugador Hace el esfuerzo por destruir todos los asteroides que
    están en la pantalla disparándoles con su ametralladora laser que
    se activa con la bárra espaciadora.
@@ -30,7 +31,7 @@ Casos de uso
  - Algunos pocos fragmentos cuando se desvanecen dejan en su lugar
    algún power up que pueden ser 1 escudo, 1 bomba o 1
    teletransportador.
- - Los power ups se recogen pasandoles por arriba con la nave.
+ - Los power ups se recogen pasándoles por arriba con la nave.
  - Solo se puede poseer un power up a la vez. Y se usan 1 sola vez.
  - Los power ups o poderes se activan con la tecla tab.
  - El escudo sirve para proteger la nave de colisiones muy fuertes que
@@ -52,7 +53,20 @@ Casos de uso
    un lugar feliz en el que todos la quiere y nadie va a hacerle daño,
    por lo menos no inmediatamente. Al teletransportarse la nave
    conserva su orientación y su velocidad.
- - 
+ - La partida transcurre entre disparos, destrucciones de meteoros y
+   poderes.
+ - El jugador inicialmente tiene 3 vidas. Si la nave es destruida más
+   de 3 veces, termina la partida en game over.
+ - Si el jugador logra destruir todos los meteoros y subframentos pasa
+   al siguiente nivel.
+ - Mientras mayor sea el nivel más dificil es el juego, hay más
+   meteoros, van más rápidos, hay menos ayuda de parte de los poderes,
+   etc.
+ - Los niveles son infinitos.
+ - Cuando el usuario eventualmente termina en game over, si el puntaje
+   fue mayor que alguno de los que está en la lista de puntajes altos
+   entonces el nombre del jugador se inserta en el lugar del puntaje
+   que superó.
 
 
 Ficheros
