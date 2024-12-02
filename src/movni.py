@@ -74,6 +74,7 @@ class Espacio:
         b."""
         global X, Y
         if (b[X] - a[X]) == 0:
+            # print(f"Pendiente infinita {a} {b}")
             return None
         return (b[Y] - a[Y]) / (b[X] - a[X])
 
@@ -87,10 +88,12 @@ class Espacio:
         mb = self.pendiente(b1, b2)
         if (ma == mb):
             return None
-        elif (not ma):
+        elif (ma == None):
+            # print(f"Se produjo una pendiente infinita {ma}, por {a1} {a2}, sin embargo {b1} {b2} si tienen pendiente {mb}")
             crucex = a1[X]
             crucey = mb * (crucex - b1[X]) + b1[Y]
-        elif (not mb):
+        elif (mb == None):
+            # print(f"Se produjo una pendiente infinita {mb}, por {b1} {b2}, sin embargo {a1} {a2} si tienen pendiente {ma}")
             crucex = b1[X]
             crucey = ma * (crucex - a1[X]) + a1[Y]
         else:
@@ -103,9 +106,8 @@ class Espacio:
         global X, Y
         return math.sqrt((b[X] - a[X]) ** 2 + (b[Y] - a[Y]) ** 2)
 
-    def baleado(self, ovni, bala):
+    def baleado(self, ovni, puntob):
         """Verifica si bala toca realmente alguna linea de ovni."""
-        puntob = bala.punta()
         for linea in ovni.lineas:
             p1 = ovni.dibpuntos[linea[0]]
             p2 = ovni.dibpuntos[linea[1]]
@@ -119,13 +121,18 @@ class Espacio:
 
     def colisionado(self, ovniA, ovniB):
         """Verifica si los ovnis realmente se tocan entre ellos."""
-        if self.distancia(ovniA.loc, ovniB.loc) > (ovniA.radiomayor + ovniB.radiomayor):
+        # print(f"Posible colisión entre 2 ovnis {ovniA} y {ovniB}")
+        valor = self.distancia(ovniA.loc, ovniB.loc)
+        # print(f"Revisando la distancia {valor} {ovniA.radiomayor} {ovniB.radiomayor} {ovniA.radiomayor + ovniB.radiomayor}")
+        if valor > (ovniA.radiomayor + ovniB.radiomayor):
             return None
         for punto in ovniA.dibpuntos:
             if (self.distancia(punto, ovniB.loc) < ovniB.radiomayor):
                 choque = self.baleado(ovniB, punto)
                 if choque:
+                    # print(f"Si hubo choque {choque}")
                     return choque
+        # print(f"No no hubo choque")
         return None
 
     def colisionares(self, lovni, ovni):
@@ -150,15 +157,17 @@ class Espacio:
                     and isinstance(ovni, Bala))
                 or (not self.sesolapan(covni, ovni))):
                 continue
+            # print(f"Dos objetos se solapan {covni} y {ovni}")
+            # print(f"Verificando tipos {type(covni) in [Nave, Meteoro]} {type(ovni) in [Nave, Meteoro]}")
 
             # Está tocandose el cuadro límite, verifica si realmente
             # toca la figura
             if ((type(ovni) in [Nave, Meteoro])
                  and isinstance(covni, Bala)):
-                puntochoque = self.baleado(ovni, covni)
+                puntochoque = self.baleado(ovni, covni.punta())
             elif ((type(covni) in [Nave, Meteoro])
                   and isinstance(ovni, Bala)):
-                puntochoque = self.baleado(covni, ovni)
+                puntochoque = self.baleado(covni, ovni.punta())
             elif ((type(ovni) in [Nave, Meteoro])
                   and (type(covni) in [Nave, Meteoro])):
                 puntochoque = self.colisionado(ovni, covni)
@@ -203,7 +212,7 @@ class Ovni:
     juego que se mueven en la pantalla."""
     def __init__(self, loc, ang, vectord, colorApl):
         # inicializando variables
-        self.loc = loc
+        self.ponerloccien(loc)
         # print("creando un ovni nuevo loc:", loc, " self.loc:", self.loc)
         self.ang = ang
         self.vectord = vectord
@@ -222,6 +231,14 @@ class Ovni:
         # El cuadrado de los límites de este Ovni expresado en dos
         # coordenadas un punto con los valores mínimos de coordenadas
         # X, Y y otro con los valores máximos X, Y.
+
+    def ponerloccien(self, loc):
+        """Pone el valor de locreal y de loc. locreal trabaja con más
+        precisión, loc se usa para dibujar y hacer colisiones, operaciones que
+        necesita valores enteros de pixeles."""
+        global X, Y
+        self.locreal = loc
+        self.loc = tuple([self.locreal[D] // 100 for D in [X, Y]])
 
     def dibujar(self):
         """Dibuja el Ovni en el surface srfce usando los puntos self.dibpuntos."""
@@ -309,9 +326,10 @@ class Ovni:
     def trasPDib(self, punto):
         """Para trasladar con respecto al punto de localizacion del
         objeto"""
+        global X, Y
         # TODO: creo que no es correcto hacer la división entre 100 de
         # este lado.
-        localpunto = tuple([self.loc[D] / 100 + punto[D] for D in [X, Y]])
+        localpunto = tuple([self.loc[D] + punto[D] for D in [X, Y]])
         self.delimitar(localpunto)
         return localpunto
 
@@ -336,7 +354,7 @@ class Ovni:
 
         # Inicializa los límites del Ovni
         for P in [MIN, MAX]:
-            self.lim[P] = tuple([V / 100 for V in self.loc])
+            self.lim[P] = self.loc
 
         # Rota y traslada los puntos para poder usarlos al momento de dibujar.
         self.dibpuntos = list(map(self.rotTrasSCPDib, self.puntos))
@@ -364,19 +382,19 @@ class Ovni:
         limites = self.miespacio.tamano
 
         # traslado el punto de la localizacion
-        self.loc = self.trasPunt(self.loc, self.vectord)
+        self.ponerloccien(self.trasPunt(self.locreal, self.vectord))
 
         # Si la localizacion esta fuera de los limites
         # introducelo por el otro extremo
         for D in [X, Y]:
-            if self.loc[D] < 0:
-                llim = list(self.loc)
-                llim[D] = limites[D] * 100
-                self.loc = tuple(llim)
-            elif self.loc[D] > (limites[D] * 100):
-                llim = list(self.loc)
-                llim[D] = 0
-                self.loc = tuple(llim)
+            if self.locreal[D] < 0:
+                lloc = list(self.locreal)
+                lloc[D] = limites[D] * 100
+                self.ponerloccien(tuple(lloc))
+            elif self.locreal[D] > limites[D] * 100:
+                lloc = list(self.locreal)
+                lloc[D] = 0
+                self.ponerloccien(tuple(lloc))
 
         self.calcularDibPuntos()
 
@@ -479,7 +497,7 @@ class Meteoro(Omasa):
         self.puntos = []
         cantp = random.randrange(10, 20)
         fact = 628.0 / cantp
-        self.radiomenor = 10
+        self.radiomenor = self.masa + 10
         self.radiomayor = -10
         for cont in range(cantp):
             magnitudaz = self.masa + random.randrange(-10, 10)
@@ -519,8 +537,9 @@ class Meteoro(Omasa):
 
     def dibujar(self):
         """Manda a dibujar las cosas específicas de un Meteoro."""
-        Omasa.dibujar(self)
+        global X, Y
         srfce = self.miespacio.pantalla
         if self.miespacio.depuracion:
-            pygame.draw.circle(srfce, self.colordep, self.loc, self.radiomenor)
-            pygame.draw.circle(srfce, self.colordep, self.loc, self.radiomayor)
+            pygame.draw.circle(srfce, self.colordep, self.loc, self.radiomenor, width = 1)
+            pygame.draw.circle(srfce, self.colordep, self.loc, self.radiomayor, width = 1)
+        Omasa.dibujar(self)
