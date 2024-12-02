@@ -241,15 +241,15 @@ class Espacio:
         # Arme un par de meteoros al azar en posiciones que no se solapen
         cantm = random.randrange(3, 5)
         fact = 628.0 / cantm
-        distanciac = random.randrange(80, (self.tamano[Y] / 2) - 30) * 100
+        distanciac = random.randrange(90, (self.tamano[Y] / 2) - 30) * 100
         for cont in range(cantm):
-            anguloaz = (fact * cont) + random.randrange(-20, 20)
+            anguloaz = (fact * cont) + random.randrange(-40, 40)
             self.agregar(Meteoro(
                 trasPunt(rotPunt((distanciac, 0), anguloaz), centro),
                 0,
                 (random.randrange(-30, 30), random.randrange(-30, 30)),
                 (255, 0, 0),
-                random.randrange(20, 100),
+                random.randrange(20, 80),
                 random.randrange(30),
                 random.randrange(-10, 10)))
 
@@ -509,8 +509,6 @@ class Meteoro(Omasa):
             elif (magnitudaz < self.radiomenor):
                 self.radiomenor = magnitudaz
             anguloaz = (fact * cont)  + random.randrange(-10, 10)
-            tsin = math.sin(anguloaz / 100)
-            tcos = math.cos(anguloaz / 100)
             self.puntos.append(rotPunt((magnitudaz, 0), anguloaz))
 
         # las lineas de los meteoros se hacen usando los puntos
