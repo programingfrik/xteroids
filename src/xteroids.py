@@ -18,14 +18,14 @@ def partida(screen, tamano, fondo, mapa):
     # inicializando el reloj
     reloj = pygame.time.Clock()
 
-    espacio = Espacio(screen, tamano, fondo)
+    espacio = Espacio(screen, tamano, fondo, False)
     espacio.depuracion = True
     vidas = 3
     poder = "Escudo"
     limitePoder = 30
     contPoder = 0
     meteoros = []
-    navejug = None
+    navejug = espacio.navejug
     contNivel = 1
     estado = "nivel"
     limiteEstado = 20
@@ -35,21 +35,6 @@ def partida(screen, tamano, fondo, mapa):
                  # cuadros entre una bala y la otra
 
     fuegoblq = 0 # el contador de los cuadros para una rafaga de balas
-
-    # la nave del jugador
-    navejug = Nave(((tamano[X] / 2 * 100), (tamano[Y] / 2 * 100)), 471, (0, 0), colorA)
-    espacio.agregar(navejug)
-
-    # armando los meteoros
-    for cont in range(random.randrange(3, 5)):
-        espacio.agregar(Meteoro(
-            (random.randrange(tamano[X] * 100), random.randrange(tamano[Y] * 100)),
-            0,
-            (random.randrange(-30, 30), random.randrange(-30, 30)),
-            colorB,
-            random.randrange(50, 120),
-            random.randrange(30),
-            random.randrange(-10, 10)))
 
     # este es el bucle principal del juego y va a correr mientras el
     # usuario no presione <ESC> para salir al menu principal
@@ -207,21 +192,8 @@ pygame.key.set_repeat(250, 50)
 # sustituye el anterior con los nuevos valores.
 
 # Fondo inicial
-fondo = Espacio(screen, size, colfondo)
+fondo = Espacio(screen, size, colfondo, True)
 fondo.depuracion = True
-
-# poniendo los objetos que van en el fondo.
-
-# armando los meteoros
-for cont in range(random.randrange(3, 5)):
-    fondo.agregar(Meteoro(
-        (random.randrange(size[X] * 100), random.randrange(size[Y] * 100)),
-        0,
-        (random.randrange(-30, 30), random.randrange(-30,30)),
-        colorB,
-        random.randrange(50, 120),
-        random.randrange(30),
-        random.randrange(-10, 10)))
 
 while True:
     # se muestra el titulo

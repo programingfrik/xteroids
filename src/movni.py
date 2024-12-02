@@ -97,12 +97,46 @@ def colisionado(ovniA, ovniB):
                 return choque
     return None
 
+def rotSCPunt(punto, sinAngul, cosAngul):
+    """Rota un punto en el angulo cuyo seno y coseno se incluyen
+    como parametros y retorna el punto resultante."""
+    global X, Y
+
+    # como el seno y el coseno son el mismo para todos los puntos
+    # porque se trata del mismo angulo este se saca fuera de esta
+    # funcion que corre para todos los puntos.
+    px = punto[X] * cosAngul
+    px -= punto[Y] * sinAngul
+    px = int(px)
+    py = punto[X] * sinAngul
+    py += punto[Y] * cosAngul
+    py = int(py)
+    return px, py
+
+def rotPunt(punto, angulo):
+    """Rota un punto cualquiera con respecto al origen, el angulo
+    indicado, en radianes. Esta funcion no necesita y no modifica
+    el sinAngul y cosAngul"""
+    return rotSCPunt(punto, math.sin(angulo / 100.0),
+                     math.cos(angulo / 100.0))
+
+def trasPunt(punto, puntotras):
+    """Para trasladar el \"punto\" sumandole \"puntotras\""""
+    global X, Y
+    return punto[X] + puntotras[X], punto[Y] + puntotras[Y]
+
+def rotTrasSCPDib(punto, puntotras, sinAngul, cosAngul):
+    """Rota y traslada un punto dada la traslacion que se le quiere dar,
+    el seno y el coseno del ángulo enque se quiere rotar."""
+    return trasPunt(rotSCPunt(punto, sinAngul, cosAngul), puntotras)
+
+
 class Espacio:
     """Esta clase representa el espacio, cada instancia de esta clase
     sostiene unos objetos y los actualiza o los mueve y hace que
     interactuen entre ellos"""
 
-    def __init__(self, pantalla, tamano, fondo):
+    def __init__(self, pantalla, tamano, fondo, demo = False):
         """Inicializando un "Espacio" nuevo."""
         self.pantalla = pantalla
         self.tamano = tamano
@@ -110,6 +144,9 @@ class Espacio:
         # Lista de ovnis, todos los objetos que existen en este espacio.
         self.lovnis = []
         self.depuracion = False
+        self.demo = demo
+        self.navejug = None
+        self.poblar()
 
     def agregar(self, ovni):
         """Pone un ovni en este espacio y se encarga de que no choque
@@ -193,6 +230,29 @@ class Espacio:
         # que necesitan lock
         self.pantalla.unlock()
 
+    def poblar(self, nivel = 0):
+        """Se encarga de poblar el espacio con una nave en el centro y varios meteoros."""
+        centro = ((self.tamano[X] / 2 * 100), (self.tamano[Y] / 2 * 100))
+
+        # Ponga la nave del jugador en el centro
+        self.navejug = Nave(centro, 471, (0, 0), (0, 255, 0))
+        self.agregar(self.navejug)
+
+        # Arme un par de meteoros al azar en posiciones que no se solapen
+        cantm = random.randrange(3, 5)
+        fact = 628.0 / cantm
+        distanciac = random.randrange(80, (self.tamano[Y] / 2) - 30) * 100
+        for cont in range(cantm):
+            anguloaz = (fact * cont) + random.randrange(-20, 20)
+            self.agregar(Meteoro(
+                trasPunt(rotPunt((distanciac, 0), anguloaz), centro),
+                0,
+                (random.randrange(-30, 30), random.randrange(-30, 30)),
+                (255, 0, 0),
+                random.randrange(20, 100),
+                random.randrange(30),
+                random.randrange(-10, 10)))
+
 # las clases que se usaran en el jueguillo
 class Ovni:
     """Objeto Volador No Identificado, un asteroide, una nave, etc.
@@ -265,82 +325,33 @@ class Ovni:
                 llim[D] = punto[D]
                 self.lim[MAX] = tuple(llim)
 
-    def rotSCPunt(self, punto, sinAngul, cosAngul):
-        """Rota un punto en el angulo cuyo seno y coseno se incluyen
-        como parametros y retorna el punto resultante."""
-        global X, Y
-
-        # como el seno y el coseno son el mismo para todos los puntos
-        # porque se trata del mismo angulo este se saca fuera de esta
-        # funcion que corre para todos los puntos.
-        px = punto[X] * cosAngul
-        px -= punto[Y] * sinAngul
-        px = int(px)
-        py = punto[X] * sinAngul
-        py += punto[Y] * cosAngul
-        py = int(py)
-        return px, py
-
-    def rotPunt(self, punto, angulo):
-        """Rota un punto cualquiera con respecto al origen, el angulo
-        indicado, en radianes. Esta funcion no necesita y no modifica
-        el self.sinAngul y self.cosAngul"""
-        return self.rotSCPunt(punto, math.sin(angulo / 100.0)
-                         , math.cos(angulo / 100.0))
-
-    def rotSCPDib(self, punto):
-        """Rota un punto cualquiera el angulo indicado por el seno y
-        el coseno del angulo en radianes que deben ponerse
-        previamente en self.sinAngul y self.cosAngul"""
-        temp = self.rotSCPunt(punto, self.sinAngul, self.cosAngul)
-        return temp
-
-    def rotPDib(self, punto):
-        """Para rotar un punto en el angulo self.ang. Esta funcion no
-        necesita y no modifica el self.sinAngul y self.cosAngul"""
-        temp = self.rotPunt(punto, self.ang)
-        return temp
-
-    def trasPunt(self, punto, puntotras):
-        """Para trasladar el \"punto\" sumandole \"puntotras\""""
-        global X, Y
-        return punto[X] + puntotras[X], punto[Y] + puntotras[Y]
-
-    def trasPDib(self, punto):
-        """Para trasladar con respecto al punto de localizacion del
-        objeto"""
-        global X, Y
-        # TODO: creo que no es correcto hacer la división entre 100 de
-        # este lado.
-        localpunto = tuple([self.loc[D] + punto[D] for D in [X, Y]])
-        self.delimitar(localpunto)
-        return localpunto
-
-    def rotTrasSCPDib(self, punto):
-        return self.trasPDib(self.rotSCPDib(punto))
-
     def acelerar(self, acel):
         """Para cambiar la aceleracion del objeto, la cantidad de posiciones que avanza,
         en el angulo del ovni."""
         global X, Y
-        px = int(self.vectord[X] + (acel * (self.cosAngul)))
-        py = int(self.vectord[Y] + (acel * (self.sinAngul)))
+
+        px = int(self.vectord[X] + (acel * self.cosAngul))
+        py = int(self.vectord[Y] + (acel * self.sinAngul))
         self.vectord = px, py
 
     def calcularDibPuntos(self):
-        # como todos los puntos se rotan en el mismo angulo no vale la
-        # pena sacar el seno y el coseno cada vez que es una operacion
-        # que toma tiempo precioso del CPU
-        anguloFl = self.ang / 100.0
-        self.sinAngul = math.sin(anguloFl)
-        self.cosAngul = math.cos(anguloFl)
+        """Calcula los puntos a dibujar realmente, rotandolos el angulo real y
+        trasladandolos al punto donde se encuentra el ovni. Para ser
+        más eficientes se calcula el seno y el coseno del ángulo que
+        se va a rotar todo, 1 sola vez por la figura completa, que
+        esta al mismo angulo y se calucula en el momento de rotar la
+        figura."""
 
         # Inicializa los límites del Ovni
         for P in [MIN, MAX]:
             self.lim[P] = self.loc
 
         # Rota y traslada los puntos para poder usarlos al momento de dibujar.
-        self.dibpuntos = list(map(self.rotTrasSCPDib, self.puntos))
+        self.dibpuntos = []
+        for punto in self.puntos:
+            ptemp = rotTrasSCPDib(punto, self.loc, self.sinAngul, self.cosAngul)
+            self.dibpuntos.append(ptemp)
+            self.delimitar(ptemp)
 
     def rotar(self, angulo):
         """Rota el objeto la cantidad de radianes indicada por
@@ -354,6 +365,10 @@ class Ovni:
         if (self.ang > 628): self.ang = self.ang - 628
         elif (self.ang < 0): self.ang = self.ang + 628
 
+        anguloFl = self.ang / 100.0
+        self.sinAngul = math.sin(anguloFl)
+        self.cosAngul = math.cos(anguloFl)
+
         self.calcularDibPuntos()
 
     def golpe(self):
@@ -365,7 +380,7 @@ class Ovni:
         limites = self.miespacio.tamano
 
         # traslado el punto de la localizacion
-        self.ponerloccien(self.trasPunt(self.locreal, self.vectord))
+        self.ponerloccien(trasPunt(self.locreal, self.vectord))
 
         # Si la localizacion esta fuera de los limites
         # introducelo por el otro extremo
@@ -382,6 +397,11 @@ class Ovni:
         self.calcularDibPuntos()
 
     def colision(self, ovnicol, puntochoque):
+        """Cuando se produce una colisión el espacio llama esta función para
+        que el omasa en cuestión tome la acción que
+        corresponda. ovnicol es el objeto con el que se produjo la
+        colisión. Y puntochoque es el punto en el que se produjo el
+        choque."""
         pass
 
     def explotar(self, bala, objetos):
@@ -404,8 +424,10 @@ class Omasa(Ovni):
 
     def colision(self, ovnicol, puntochoque):
         """Cuando se produce una colisión el espacio llama esta función para
-        que el ovni en cuestión tome la acción que corresponda. ovnicol es el
-        objeto con el que se produjo la colisión."""
+        que el omasa en cuestión tome la acción que
+        corresponda. ovnicol es el objeto con el que se produjo la
+        colisión. Y puntochoque es el punto en el que se produjo el
+        choque."""
         # Si hubo una colisión cambiale el color de depuración.
         self.colordep = (0, 255, 0)
 
@@ -489,7 +511,7 @@ class Meteoro(Omasa):
             anguloaz = (fact * cont)  + random.randrange(-10, 10)
             tsin = math.sin(anguloaz / 100)
             tcos = math.cos(anguloaz / 100)
-            self.puntos.append(self.rotPunt((magnitudaz, 0), anguloaz))
+            self.puntos.append(rotPunt((magnitudaz, 0), anguloaz))
 
         # las lineas de los meteoros se hacen usando los puntos
         self.lineas = []
@@ -500,7 +522,7 @@ class Meteoro(Omasa):
         self.acelerar(vel)
 
     def golpe(self):
-        self.ang += self.vrot
+        self.rotar(self.vrot)
         Omasa.golpe(self)
 
     def dividir(self):
