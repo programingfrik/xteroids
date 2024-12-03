@@ -12,6 +12,12 @@ Y = 1
 MIN = 0
 MAX = 1
 
+# Categorias de Meteoros
+#          vectord    color          masa      vel vrot
+catmet = [[(-40, 40), (255, 54, 59), (20, 40), 40, (-5, 5)],   # 0 los chiquitos
+          [(-30, 30), (255, 82, 53), (40, 60), 30, (-10, 10)], # 1 los medianos
+          [(-20, 20), (255, 161, 74), (60, 80), 20, (-8, 8)]]  # 2 los grandesitos
+
 def estaentre(v, ra, rb):
     """Dice si v está entre el rango formado por ra y rb, no importa el orden."""
     return (((ra < rb) and (v >= ra) and (v <= rb))
@@ -163,7 +169,8 @@ class Espacio:
     def quitar(self, ovni):
         """Para quitar el ovni que se indique del espacio."""
         # se quita el objeto de la lista de objetos
-        self.lovnis.remove(ovni)
+        if ovni in self.lovnis:
+            self.lovnis.remove(ovni)
 
     def colisionares(self, lovni, ovni):
         """Verifica las colisiones de todos los ovnis y avisa a los ovnis
@@ -232,6 +239,9 @@ class Espacio:
 
     def poblar(self, nivel = 0):
         """Se encarga de poblar el espacio con una nave en el centro y varios meteoros."""
+        global catmet, X, Y
+
+        # Centro de la pantalla.
         centro = ((self.tamano[X] / 2 * 100), (self.tamano[Y] / 2 * 100))
 
         # Ponga la nave del jugador en el centro
@@ -244,14 +254,18 @@ class Espacio:
         distanciac = random.randrange(90, (self.tamano[Y] / 2) - 30) * 100
         for cont in range(cantm):
             anguloaz = (fact * cont) + random.randrange(-40, 40)
+            # la categoria del meteoro en cuestión
+            cat = random.randrange(0, 2)
             self.agregar(Meteoro(
                 trasPunt(rotPunt((distanciac, 0), anguloaz), centro),
                 0,
-                (random.randrange(-30, 30), random.randrange(-30, 30)),
-                (255, 0, 0),
-                random.randrange(20, 80),
-                random.randrange(30),
-                random.randrange(-10, 10)))
+                (random.randrange(catmet[cat][0][MIN], catmet[cat][0][MAX]),
+                 random.randrange(catmet[cat][0][MIN], catmet[cat][0][MAX])),
+                catmet[cat][1],
+                random.randrange(catmet[cat][2][MIN], catmet[cat][2][MAX]),
+                random.randrange(catmet[cat][3]),
+                random.randrange(catmet[cat][4][MIN], catmet[cat][4][MAX]),
+                cat))
 
 # las clases que se usaran en el jueguillo
 class Ovni:
@@ -470,6 +484,10 @@ class Bala(Omasa):
         """Retorna el punto que va a llegar primero a cualquier colision."""
         return self.dibpuntos[1]
 
+    def colision(self, ovnicol, puntochoque):
+        """Esto es lo que debe hacer una bala ante un choque"""
+        self.miespacio.quitar(self)
+
 
 class Nave(Omasa):
     """Cada instancia representa una nave"""
@@ -493,7 +511,7 @@ class Nave(Omasa):
         return f"<Nave loc={self.loc} ang={self.ang} lim={self.lim}>"
 
 class Meteoro(Omasa):
-    def __init__(self, loc, ang, vectord, colorApl, masa, vel, vrot):
+    def __init__(self, loc, ang, vectord, colorApl, masa, vel, vrot, cat):
         Omasa.__init__(self, loc, ang, vectord, colorApl, masa)
         self.vrot = vrot
         # los puntos del meteoro se generan al azar
@@ -502,6 +520,7 @@ class Meteoro(Omasa):
         fact = 628.0 / cantp
         self.radiomenor = self.masa + 10
         self.radiomayor = -10
+        self.cat = cat
         for cont in range(cantp):
             magnitudaz = self.masa + random.randrange(-10, 10)
             if (magnitudaz > self.radiomayor):
@@ -539,3 +558,21 @@ class Meteoro(Omasa):
             pygame.draw.circle(srfce, self.colordep, self.loc, self.radiomenor, width = 1)
             pygame.draw.circle(srfce, self.colordep, self.loc, self.radiomayor, width = 1)
         Omasa.dibujar(self)
+
+    def colision(self, ovnicol, puntochoque):
+        """La reacción de un meteoro cuando lo chocan."""
+
+        # En que plano tangente a ambos ovnis se produjo el choque.
+
+        # Cual es el ángulo de este ovni con respecto a ese plano.
+
+        # Cual es el vector reflejo de ese ángulo.
+
+        # Los choques no son elásticos completamente, una parte de la fuerza se absorve
+
+        # El objeto con más masa recibe menos influencia del otro objeto.
+
+        # El objeto con menos masa recibe máyor influencia del otro.
+
+
+
