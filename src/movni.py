@@ -561,6 +561,7 @@ class Meteoro(Omasa):
 
     def colision(self, ovnicol, puntochoque):
         """La reacción de un meteoro cuando lo chocan."""
+        Omasa.colision(self, ovnicol, puntochoque)
 
         # En que plano tangente a ambos ovnis se produjo el choque.
 
@@ -573,6 +574,7 @@ class Meteoro(Omasa):
         # El objeto con más masa recibe menos influencia del otro objeto.
 
         # El objeto con menos masa recibe máyor influencia del otro.
+
 
 
 
