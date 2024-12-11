@@ -62,7 +62,8 @@ Casos de uso
  - Mientras mayor sea el nivel más dificil es el juego, hay más
    meteoros, van más rápidos, hay menos ayuda de parte de los poderes,
    etc.
- - Los niveles son infinitos.
+ - Los niveles son infinitos. Dependiendo de la habilidad del jugador
+   va a poder llegar más lejos.
  - Cuando el usuario eventualmente termina en game over, si el puntaje
    fue mayor que alguno de los que está en la lista de puntajes altos
    entonces el nombre del jugador se inserta en el lugar del puntaje
@@ -72,31 +73,100 @@ Casos de uso
 Ficheros
 --------
 
+Esta sección detalla que se encuentra en cada uno de los ficheros que
+componen este jueguillo.
+
+
 ### xteroids.py ###
+
+El fichero principal que llama a todos los otros componentes. Este
+fichero se encarga de poner los valores iniciales de las partidas,
+manejar los menus y llevar el bucle principal del juego. Este es el
+fichero que hay que llamar para iniciar el juego.
 
 
 ### movni.py ###
 
+Tiene dentro casi todos los objetos que interactuan en el juego. Tiene
+una jerarquía de clases que se presta para hacer funcionar este
+juego. El objeto principal es un ovni, o sea un objeto volador no
+identificado, un objeto que aparece en el juego, que hay que dibujar
+en la pantalla, quizás tiene algún proceso que hacer en cada cuadro de
+animación o golpe de reloj y quizás reaccióna a colisiones. La razón
+por la que este modulo es movni, como módulo ovni es por este
+objeto. También este fichero contiene unas cuantas funciones usadas
+para hacer operaciones con los vectores, rotar puntos, detectar
+colisiones y todas las cosas que hagan falta.
+
 
 ### texto.py ###
+
+Este fichero contiene algunos objetos extras para dibujar texto en
+forma de vectores que es de la manera en la que se muestra el texto en
+la interface del juego.
 
 
 Clases
 ------
 
+Esta seccción habla un poco a nivel general de cada una de las clases
+que componen el jueguillo.
+
 ### movni.Espacio ###
+
+Esta clase representa el espacio en el que se desenvuelven los otros
+objetos del juego. Por cada partida que se presente hay una instancia
+de este objeto. Cada espacio tiene una lista de ovnis que existen
+dentro de el y que hay que dibujar y que interactuan entre ellos en
+cada golpe de reloj.
+
 
 ### movni.Ovni ###
 
+Esta es la clase principal del juego. Todos los objetos del juego que
+se dibujan y tienen alguna reacción a los eventos que ocurren son
+herederos de esta clase. Se aprovecha esta clase para definir las
+acciones que todos los demás objetos derivados comparten entre ellos,
+la función de rotar, la función de dibujar, la función que dice lo que
+el objeto tiene que hacer en caso de una colisión, etc.
+
+
 ### movni.Omasa(Ovni) ###
+
+Esta subclase de ovni, un ovni con masa, existe para diferenciar los
+objetos que solo son dibujos de los que tienen presencia real y chocan
+con los otros objetos que tienen masa.
+
 
 ### movni.Bala(Omasa) ###
 
+Cada bala que dispara el jugador que sale desde su nave es
+representada como una instancia de esta clase. Cada bala pasa a ser
+parte de la lista de ovnis del espacio.
+
+
 ### movni.Nave(Omasa) ###
+
+Representa una nave en el espacio. Inicialmente la nave del jugador
+pero también las naves que aparecen casualmente en el espacio.
+
 
 ### movni.Meteoro(Omasa) ###
 
+Cada asteroide que aparece en el espacio ... es en realidad una
+instancia de la clase Meteoro (:-P). Ya estoy enterado que asteroide y
+meteoro no son sinónimos y que son cosas muy diferentes de hecho, pero
+como este es mi juego y yo nombro las cosas como me da la gana esta es
+la clase meteoro, gracias por participar. Esta clase genera meteoros
+al azar a partir de algunos parámetros y los coloca en un sitio
+azaroso del espacio.
+
+
 ### texto.Caracteres(Ovni) ###
+
+Una clase para cuando hay que dibujar una letra en el espacio.
+
 
 ### texto.Texto(Ovni) ###
 
+Otra clase de texto, esta para una frase o conjunto de caracteres.
