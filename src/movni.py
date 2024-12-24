@@ -78,8 +78,9 @@ def distancia(a, b):
     global X, Y
     return math.sqrt((b[X] - a[X]) ** 2 + (b[Y] - a[Y]) ** 2)
 
-def baleado(ovni, puntob):
+def baleado(ovni, bala):
     """Verifica si bala toca realmente alguna linea de ovni."""
+    puntob = bala.punta()
     for linea in ovni.lineas:
         p1 = ovni.dibpuntos[linea[0]]
         p2 = ovni.dibpuntos[linea[1]]
@@ -88,19 +89,93 @@ def baleado(ovni, puntob):
             continue
         if (distancia(cruce, ovni.loc)
             > distancia(puntob, ovni.loc)):
-            return cruce
+            return Choque(ovni, bala, cruce, (p1, p2))
     return None
 
-def colisionado(ovniA, ovniB):
-    """Verifica si los ovnis realmente se tocan entre ellos."""
-    valor = distancia(ovniA.loc, ovniB.loc)
-    if valor > (ovniA.radiomayor + ovniB.radiomayor):
+def traervecinas(vecinas, ipunto, ovniA, ovniB):
+    ipuntosv = []
+    if len(vecinas) == len(ovniA.lineas):
         return None
-    for punto in ovniA.dibpuntos:
-        if (distancia(punto, ovniB.loc) < ovniB.radiomayor):
-            choque = baleado(ovniB, punto)
-            if choque:
-                return choque
+    for linea in ovniA.lineas:
+        if ipunto in linea:
+            ilinea = ovniA.lineas.index(linea)
+            if ilinea not in vecinas:
+                vecinas.append(ilinea)
+            otro = list(linea)
+            otro.remove(ipunto)
+            ipuntosv.append(otro[0])
+    for ipuntov in ipuntosv:
+        distB = distancia(ovniA.dibpuntos[ipuntov], ovniB.loc)
+        if distB < ovniB.radiomayor:
+            traervecinas(vecinas, ipuntov, ovniA, ovniB)
+    return None
+
+def puntomedio(puntoA, puntoB):
+    """Carcúla el punto medio entre 2 puntos."""
+    global X, Y
+    return (((puntoB[X] - puntoA[X]) // 2) + puntoA[X],
+            ((puntoB[Y] - puntoA[Y]) // 2) + puntoA[Y])
+
+def colisionado(ovniA, ovniB):
+    """Verifica si los ovnis realmente se tocan entre ellos y si lo hacen
+    en que plano de choque."""
+    distAB = distancia(ovniA.loc, ovniB.loc)
+    if distAB > (ovniA.radiomayor + ovniB.radiomayor):
+        # Si la distancia entre sus centros es mayor que la suma de
+        # sus radiomayor no hay colisión.
+        return None
+
+    # Buscando los puntos más cercanos al centro contrario.
+    cercanos = []
+    vecinas = []
+    # Para ambos ovnis hay que hacer el mismo ejercicio tomando el
+    # otro ovni como contrario.
+    for ovnisver in [[ovniA, ovniB],
+                     [ovniB, ovniA]]:
+        cercanodist = distAB
+        ic = len(cercanos)
+        cercanos.append(0)
+        # Recorre los puntos de la primera figura
+        for punto in ovnisver[0].dibpuntos:
+            # Revisa la distancia contra el centro contrario
+            pdist = distancia(punto, ovnisver[1].loc)
+            if (cercanodist > pdist):
+                # Si aparece un punto más cercano al centro contrario
+                # que el que ya teníamos, guárdalo como el punto más
+                # cercano y guarda su indice también.
+                cercanos[ic] = ovnisver[0].dibpuntos.index(punto)
+                cercanodist = pdist
+        iv = len(vecinas)
+        vecinas.append([])
+        # Traeme las lineas vecinas, las lineas en las que participa
+        # este punto cercano y las lineas adyacentes si también están
+        # dentro del radiomayor contrario.
+        traervecinas(vecinas[iv], cercanos[ic], ovnisver[0], ovnisver[1])
+
+    cruces = []
+    # Revisa si hay cruces entre esas lineas vecinas que están más
+    # cercanas al centro contrario y dentro de su radiomayor.
+    for ilineaA in vecinas[0]:
+        for ilineaB in vecinas[1]:
+            lineaA = (ovniA.dibpuntos[ovniA.lineas[ilineaA][0]],
+                      ovniA.dibpuntos[ovniA.lineas[ilineaA][1]])
+            lineaB = (ovniB.dibpuntos[ovniB.lineas[ilineaB][0]],
+                      ovniB.dibpuntos[ovniB.lineas[ilineaB][1]])
+            cruce = secruzan(lineaA[0], lineaA[1],
+                             lineaB[0], lineaB[1])
+            if (cruce
+                and puntoestaentre(cruce, lineaA[0], lineaA[1])
+                and puntoestaentre(cruce, lineaB[0], lineaB[1])):
+                # Si hay un cruce guardalo
+                cruces.append((cruce, lineaA, lineaB))
+
+    if len(cruces) == 2:
+        # Si las figuras se están chocando, deberían estar un poco
+        # solapadas, entonces tiene que haber 2 puntos en los que sus
+        # lineas se solapan.
+        medio = puntomedio(cruces[0][0], cruces[1][0])
+        return Choque(ovniA, ovniB, medio, (cruces[0][0], cruces[1][0]))
+
     return None
 
 def rotSCPunt(punto, sinAngul, cosAngul):
@@ -199,20 +274,20 @@ class Espacio:
             # toca la figura
             if ((type(ovni) in [Nave, Meteoro])
                  and isinstance(covni, Bala)):
-                puntochoque = baleado(ovni, covni.punta())
+                choque = baleado(ovni, covni)
             elif ((type(covni) in [Nave, Meteoro])
                   and isinstance(ovni, Bala)):
-                puntochoque = baleado(covni, ovni.punta())
+                choque = baleado(covni, ovni)
             elif ((type(ovni) in [Nave, Meteoro])
                   and (type(covni) in [Nave, Meteoro])):
-                puntochoque = colisionado(ovni, covni)
+                choque = colisionado(ovni, covni)
 
-            if not puntochoque:
+            if not choque:
                 continue
 
             # Si se tocan
-            ovni.colision(covni, puntochoque)
-            covni.colision(ovni, puntochoque)
+            ovni.colision(choque)
+            covni.colision(choque)
 
     def golpe(self):
         """Esta función debe ejecutarse en cada golpe del reloj. Esta
@@ -410,7 +485,7 @@ class Ovni:
 
         self.calcularDibPuntos()
 
-    def colision(self, ovnicol, puntochoque):
+    def colision(self, choque):
         """Cuando se produce una colisión el espacio llama esta función para
         que el omasa en cuestión tome la acción que
         corresponda. ovnicol es el objeto con el que se produjo la
@@ -436,7 +511,7 @@ class Omasa(Ovni):
         self.radiomayor = 2
         self.radiomenor = 1
 
-    def colision(self, ovnicol, puntochoque):
+    def colision(self, choque):
         """Cuando se produce una colisión el espacio llama esta función para
         que el omasa en cuestión tome la acción que
         corresponda. ovnicol es el objeto con el que se produjo la
@@ -484,7 +559,7 @@ class Bala(Omasa):
         """Retorna el punto que va a llegar primero a cualquier colision."""
         return self.dibpuntos[1]
 
-    def colision(self, ovnicol, puntochoque):
+    def colision(self, choque):
         """Esto es lo que debe hacer una bala ante un choque"""
         self.miespacio.quitar(self)
 
@@ -559,9 +634,9 @@ class Meteoro(Omasa):
             pygame.draw.circle(srfce, self.colordep, self.loc, self.radiomayor, width = 1)
         Omasa.dibujar(self)
 
-    def colision(self, ovnicol, puntochoque):
+    def colision(self, choque):
         """La reacción de un meteoro cuando lo chocan."""
-        Omasa.colision(self, ovnicol, puntochoque)
+        Omasa.colision(self, choque)
 
         # En que plano tangente a ambos ovnis se produjo el choque.
 
@@ -576,5 +651,12 @@ class Meteoro(Omasa):
         # El objeto con menos masa recibe máyor influencia del otro.
 
 
+class Choque:
+    """La representación de un choque."""
 
+    def __init__(self, ovniA, ovniB, punto, plano):
+        self.ovniA = ovniA
+        self.ovniB = ovniB
+        self.punto = punto
+        self.plano = plano
 
