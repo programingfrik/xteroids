@@ -20,7 +20,7 @@ catmet = [[(-40, 40), (255, 54, 59), (20, 40), 40, (-5, 5)],   # 0 los chiquitos
 
 def estaentre(v, ra, rb):
     """Dice si v está entre el rango formado por ra y rb, no importa el orden."""
-    return (((ra < rb) and (v >= ra) and (v <= rb))
+    return (((ra <= rb) and (v >= ra) and (v <= rb))
             or ((rb < ra) and (v >= rb) and (v <= ra)))
 
 def puntoestaentre(ps, pi, pf):
