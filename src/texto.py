@@ -186,7 +186,7 @@ class Menu:
         i = 0
         while i < len(self.opciones):
             temp = Texto(self.opciones[i], 3
-                    , (self.loc[X], self.loc[Y] + (i * 3000))
+                    , (self.loc[X], self.loc[Y] + (i * 30))
                     , 0, (0,0), self.colorN)
             tpOpciones.append(self.fondo.agregar(temp))
             tOpciones.append(temp)

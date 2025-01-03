@@ -211,6 +211,17 @@ def rotTrasSCPDib(punto, puntotras, sinAngul, cosAngul):
     el seno y el coseno del ángulo enque se quiere rotar."""
     return trasPunt(rotSCPunt(punto, sinAngul, cosAngul), puntotras)
 
+def limiteCircular(ini, fin, val):
+    """Se asegura que el valor esté entre inicio y fin. Si el valor está
+    entre inicio y fin retorna el mismo valor. Si el valor es mayor que
+    fin retorna el inicio. Si el valor es menor que inicio retorna el
+    valor fin."""
+    if val > fin:
+        return ini
+    elif val < ini:
+        return fin
+    else:
+        return val
 
 class Espacio:
     """Esta clase representa el espacio, cada instancia de esta clase
@@ -317,7 +328,7 @@ class Espacio:
         global catmet, X, Y
 
         # Centro de la pantalla.
-        centro = ((self.tamano[X] / 2 * 100), (self.tamano[Y] / 2 * 100))
+        centro = ((self.tamano[X] // 2), (self.tamano[Y] // 2))
 
         # Ponga la nave del jugador en el centro
         self.navejug = Nave(centro, 471, (0, 0), (0, 255, 0))
@@ -326,7 +337,7 @@ class Espacio:
         # Arme un par de meteoros al azar en posiciones que no se solapen
         cantm = random.randrange(3, 5)
         fact = 628.0 / cantm
-        distanciac = random.randrange(90, (self.tamano[Y] / 2) - 30) * 100
+        distanciac = random.randrange(90, (self.tamano[Y] / 2) - 30)
         for cont in range(cantm):
             anguloaz = (fact * cont) + random.randrange(-40, 40)
             # la categoria del meteoro en cuestión
@@ -350,7 +361,7 @@ class Ovni:
     juego que se mueven en la pantalla."""
     def __init__(self, loc, ang, vectord, colorApl):
         # inicializando variables
-        self.ponerloccien(loc)
+        self.loc = loc
         self.ang = ang
         self.vectord = vectord
         self.color = colorApl
@@ -368,13 +379,36 @@ class Ovni:
         # coordenadas un punto con los valores mínimos de coordenadas
         # X, Y y otro con los valores máximos X, Y.
 
-    def ponerloccien(self, loc):
+    def traerlocreal(self):
+        return self._locreal
+
+    def ponerlocreal(self, loc):
         """Pone el valor de locreal y de loc. locreal trabaja con más
         precisión, loc se usa para dibujar y hacer colisiones, operaciones que
         necesita valores enteros de pixeles."""
         global X, Y
-        self.locreal = loc
-        self.loc = tuple([self.locreal[D] // 100 for D in [X, Y]])
+        self._locreal = loc
+        self._loc = tuple([loc[D] / 100 for D in [X, Y]])
+
+    def borrarlocreal(self):
+        del self._locreal
+        del self._loc
+
+    locreal = property(traerlocreal, ponerlocreal, borrarlocreal, "La localización real.")
+
+    def traerloc(self):
+        return self._loc
+
+    def ponerloc(self, loc):
+        global X, Y
+        self._loc = loc
+        self._locreal = tuple([loc[D] * 100 for D in [X, Y]])
+
+    def borrarloc(self):
+        del self._loc
+        del self._locreal
+
+    loc = property(traerloc, ponerloc, borrarloc, "La localización para la pantalla")
 
     def dibujar(self):
         """Dibuja el Ovni en el surface srfce usando los puntos self.dibpuntos."""
@@ -451,8 +485,7 @@ class Ovni:
         self.ang += angulo
 
         # hay que mantener el angulo entre 0 y 628 radianes
-        if (self.ang > 628): self.ang = self.ang - 628
-        elif (self.ang < 0): self.ang = self.ang + 628
+        self.ang = limiteCircular(0, 628, self.ang)
 
         anguloFl = self.ang / 100.0
         self.sinAngul = math.sin(anguloFl)
@@ -468,20 +501,15 @@ class Ovni:
 
         limites = self.miespacio.tamano
 
-        # traslado el punto de la localizacion
-        self.ponerloccien(trasPunt(self.locreal, self.vectord))
+        # traslada el punto de la localizacion
+        self.locreal = trasPunt(self.locreal, self.vectord)
 
         # Si la localizacion esta fuera de los limites
         # introducelo por el otro extremo
+        lloc = list(self.loc)
         for D in [X, Y]:
-            if self.locreal[D] < 0:
-                lloc = list(self.locreal)
-                lloc[D] = limites[D] * 100
-                self.ponerloccien(tuple(lloc))
-            elif self.locreal[D] > limites[D] * 100:
-                lloc = list(self.locreal)
-                lloc[D] = 0
-                self.ponerloccien(tuple(lloc))
+            lloc[D] = limiteCircular(0, limites[D], lloc[D])
+        self.loc = tuple(lloc)
 
         self.calcularDibPuntos()
 
@@ -578,7 +606,7 @@ class Nave(Omasa):
         """Hay que poner una bala nueva en la lista de balas"""
         angulo = self.ang + random.randrange(-10,10)
         self.miespacio.agregar(
-            Bala((self.dibpuntos[0][X] * 100, self.dibpuntos[0][Y] * 100)
+            Bala((self.dibpuntos[0][X], self.dibpuntos[0][Y])
                  , angulo, self.vectord, self.color, (0, 0 , 200), 50, 360))
 
     def __repr__(self):

@@ -197,16 +197,16 @@ fondo.depuracion = True
 
 while True:
     # se muestra el titulo
-    titulo = Texto("Xteroids", 5, (10000,5000),0,(0,0), colorA)
+    titulo = Texto("Xteroids", 5, (100, 50),0,(0,0), colorA)
     fondo.agregar(titulo)
-    credito = Texto("por Pablo Mercader Alcantara",2, (10000,46000),0,(0,0), colorA)
+    credito = Texto("por Pablo Mercader Alcantara",2, (100, 460),0,(0,0), colorA)
     fondo.agregar(credito)
 
     # Se muestra el menu principal donde hay cuatro opciones
     # jugar, controles, salon fama, creditos y salir.
 
     opciones = ["jugar", "configuracion", "fama", "creditos", "salir"]
-    menu = Menu((10000,10000), opciones, colorA, colorC, fondo)
+    menu = Menu((100, 100), opciones, colorA, colorC, fondo)
     eleccion = menu.mostrar()
 
     # si elige jugar una partida
